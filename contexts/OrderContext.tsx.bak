@@ -1,0 +1,148 @@
+import React, { createContext, useContext, useMemo, useState } from 'react';
+
+export type OrderType = 'document' | 'photo' | 'poster';
+
+export type UserInfo = {
+  fullName: string;
+  phone: string;
+  email: string;
+};
+
+export type LocationInfo = {
+  id?: string;
+  name: string;
+  address?: string;
+  country?: string;
+  whatsapp?: string;
+};
+
+export type PrintConfig = {
+  paper?: 'letter' | 'legal' | 'a4' | 'a3' | 'tabloid' | string;
+  paperLabel?: string;
+
+  copies: number;
+
+  // 'bw' | 'color' etc.
+  printType?: string;
+  printTypeLabel?: string;
+
+  // 'none' | 'oneSide' | 'doubleSide' | 'spiral' | 'staples' etc.
+  binding?: string;
+  bindingLabel?: string;
+
+  pages?: number; // total pages (opcional)
+};
+
+export type UploadFile = {
+  name: string;
+  uri?: string;
+  size?: number;
+  type?: string;
+  pages?: number;
+};
+
+export type DeliveryInfo = {
+  enabled: boolean;
+  address: string;
+  miles: number;   // distancia en millas
+  fee: number;     // costo calculado
+};
+
+type OrderContextValue = {
+  orderType: OrderType | null;
+  setOrderType: (type: OrderType) => void;
+
+  userInfo: UserInfo | null;
+  setUserInfo: (info: UserInfo) => void;
+
+  selectedLocation: LocationInfo | null;
+  setSelectedLocation: (loc: LocationInfo) => void;
+
+  printConfig: PrintConfig | null;
+  setPrintConfig: (cfg: PrintConfig) => void;
+
+  files: UploadFile[];
+  setFiles: (files: UploadFile[]) => void;
+  addFiles: (files: UploadFile[]) => void;
+  clearFiles: () => void;
+
+  delivery: DeliveryInfo;
+  setDelivery: (info: DeliveryInfo) => void;
+
+  comments: string;
+  setComments: (text: string) => void;
+
+  orderStatus: 'draft' | 'received' | 'pending' | 'cancelled' | 'completed';
+  setOrderStatus: (s: OrderContextValue['orderStatus']) => void;
+
+  resetOrder: () => void;
+};
+
+const OrderContext = createContext<OrderContextValue | undefined>(undefined);
+
+export function OrderProvider({ children }: { children: React.ReactNode }) {
+  const [orderType, setOrderType] = useState<OrderType | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(null);
+  const [printConfig, setPrintConfig] = useState<PrintConfig | null>(null);
+
+  const [files, setFiles] = useState<UploadFile[]>([]);
+  const addFiles = (newFiles: UploadFile[]) => setFiles(prev => [...prev, ...newFiles]);
+  const clearFiles = () => setFiles([]);
+
+  const [delivery, setDelivery] = useState<DeliveryInfo>({
+    enabled: false,
+    address: '',
+    miles: 0,
+    fee: 0,
+  });
+
+  const [comments, setComments] = useState<string>('');
+
+  const [orderStatus, setOrderStatus] = useState<OrderContextValue['orderStatus']>('draft');
+
+  const resetOrder = () => {
+    setOrderType(null);
+    setUserInfo(null);
+    setSelectedLocation(null);
+    setPrintConfig(null);
+    setFiles([]);
+    setDelivery({ enabled: false, address: '', miles: 0, fee: 0 });
+    setComments('');
+    setOrderStatus('draft');
+  };
+
+  const value = useMemo(
+    () => ({
+      orderType,
+      setOrderType,
+      userInfo,
+      setUserInfo,
+      selectedLocation,
+      setSelectedLocation,
+      printConfig,
+      setPrintConfig,
+      files,
+      setFiles,
+      addFiles,
+      clearFiles,
+      delivery,
+      setDelivery,
+      comments,
+      setComments,
+      orderStatus,
+      setOrderStatus,
+      resetOrder,
+    }),
+    [orderType, userInfo, selectedLocation, printConfig, files, delivery, comments, orderStatus]
+  );
+
+  return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
+}
+
+export function useOrder() {
+  const ctx = useContext(OrderContext);
+  if (!ctx) throw new Error('useOrder must be used within an OrderProvider');
+  return ctx;
+}
