@@ -7,23 +7,22 @@ export default function BottomBackButton({ label = 'Atrás' }: { label?: string 
 
   return (
     <TouchableOpacity
-     onPress={() => {
-       try {
-         if (typeof window !== 'undefined' && window.history.length > 1) {
-           router.back();
-           return;
+      onPress={() => {
+        // 1) Si hay historial, retrocede normal
+        if (router.canGoBack()) {
+          router.back();
+          return;
          }
-       } catch {}
-       router.replace('/select-order-type');
-     }}
-     activeOpacity={0.85}
-     style={styles.btn}
-    >
+
+        // 2) Si NO hay historial, vuelve a Order Type
+        router.replace('/select-order-type');
+      }}
+      activeOpacity={0.85}
+      style={styles.btn}
+     >
       <Text style={styles.icon}>←</Text>
-      <Text style={styles.txt} numberOfLines={1} ellipsizeMode="tail">
-       {label}
-      </Text>
-    </TouchableOpacity>
+      <Text style={styles.txt}>{label}</Text>
+     </TouchableOpacity>
   );
 }
 

@@ -1,5 +1,5 @@
 import BottomBackButton from '@/components/BottomBackButton';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Clock3, XCircle, CheckCircle2, PackageCheck } from 'lucide-react-native';
@@ -10,6 +10,14 @@ type Status = 'pending' | 'cancelled' | 'completed';
 
 export default function OrderStatus() {
   const router = useRouter();
+    useEffect(() => {
+      const tmr = setTimeout(() => {
+        router.replace('/'); // vuelve a bienvenida
+      }, 10000);
+
+      return () => clearTimeout(tmr);
+    }, []);
+
   const { t } = useTranslation();
   const order = useOrder() as any;
 
@@ -21,10 +29,26 @@ export default function OrderStatus() {
   const [status, setStatus] = useState<Status>(initial);
 
   const meta = useMemo(() => {
-    if (status === 'completed') return { icon: CheckCircle2, title: t('status.completed', 'Completado'), desc: t('status.completedDesc', 'Tu pedido fue completado y está listo.') };
-    if (status === 'cancelled') return { icon: XCircle, title: t('status.cancelled', 'Cancelado'), desc: t('status.cancelledDesc', 'Tu pedido fue cancelado.') };
-    return { icon: Clock3, title: t('status.pending', 'Pendiente'), desc: t('status.pendingDesc', 'Estamos procesando tu pedido.') };
-  }, [status, t]);
+  if (status === 'completed')
+    return {
+      icon: CheckCircle2,
+      title: t('status.completed', 'Completado'),
+      desc: t('status.completedDesc', 'Tu pedido fue completado y está listo.'),
+    };
+
+  if (status === 'cancelled')
+    return {
+      icon: XCircle,
+      title: t('status.cancelled', 'Cancelado'),
+      desc: t('status.cancelledDesc', 'Tu pedido fue cancelado.'),
+    };
+
+  return {
+    icon: Clock3,
+    title: t('status.pending', 'Pendiente'),
+    desc: t('status.pendingDesc', 'Estamos procesando tu pedido.'),
+  };
+}, [status, t]);
 
   const Icon = meta.icon;
 
