@@ -23,6 +23,8 @@ config.server = {
 
 if (config.resolver) {
   config.resolver.sourceExts.push('mjs');
+  // Avoid bundling issues with certain libraries in web
+  config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'pdf');
 }
 
 module.exports = config;
