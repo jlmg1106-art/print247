@@ -6,7 +6,6 @@ import { Upload, Info, Truck } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
 import { useOrder, PickedFile } from '../contexts/OrderContext';
-import { PDFDocument } from 'pdf-lib';
 
 const MAX_FILES = 5;
 
@@ -23,14 +22,17 @@ function calcDeliveryFee(miles: number) {
 }
 
 async function getPdfPages(uri: string): Promise<number | undefined> {
+  if (Platform.OS === 'web') {
+    return 1;
+  }
   try {
-    // En Expo, normalmente fetch(uri) funciona para archivos locales (iOS/Android)
+    const { PDFDocument } = require('pdf-lib');
     const res = await fetch(uri);
     const buf = await res.arrayBuffer();
     const pdf = await PDFDocument.load(buf);
     return pdf.getPageCount();
   } catch (e) {
-    return undefined;
+    return 1;
   }
 }
 
