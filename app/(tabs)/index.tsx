@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Printer, UserPlus, Clock, MapPin, Shield, Zap, Sparkles, Settings } from 'lucide-react-native';
+import { Printer, UserPlus, Clock, MapPin, Shield, Zap, Sparkles, Settings, Search } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from '@/components/LanguageSelector';
 
@@ -102,6 +102,40 @@ export default function Index() {
                 </View>
               </View>
             </TouchableOpacity>
+
+            <View style={styles.rowButtons}>
+              <TouchableOpacity
+                style={[styles.smallButton, { backgroundColor: '#fff' }]}
+                onPress={() => router.push('/orders')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.smallButtonContent}>
+                  <View style={[styles.iconContainerSmall, { backgroundColor: 'rgba(0, 102, 255, 0.1)' }]}>
+                    <Clock color="#0066FF" size={24} />
+                  </View>
+                  <View style={styles.smallButtonTextContainer}>
+                    <Text style={[styles.smallButtonTitle, { color: '#0066FF' }]}>Mis pedidos</Text>
+                    <Text style={styles.smallButtonSubtitle}>Ver guardados</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.smallButton, { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 2, borderColor: '#fff' }]}
+                onPress={() => router.push('/order-track')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.smallButtonContent}>
+                  <View style={[styles.iconContainerSmall, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
+                    <Search color="#fff" size={24} />
+                  </View>
+                  <View style={styles.smallButtonTextContainer}>
+                    <Text style={[styles.smallButtonTitle, { color: '#fff' }]}>Rastrear</Text>
+                    <Text style={[styles.smallButtonSubtitle, { color: 'rgba(255, 255, 255, 0.9)' }]}>Buscar por ID</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.infoSection}>
@@ -220,6 +254,14 @@ const styles = StyleSheet.create({
   buttonSubtitle: { fontSize: 14, fontWeight: '400', color: '#666' },
   buttonTitleSecondary: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 4 },
   buttonSubtitleSecondary: { fontSize: 14, fontWeight: '400', color: 'rgba(255, 255, 255, 0.9)' },
+
+  rowButtons: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  smallButton: { flex: 1, borderRadius: 20, padding: 12, height: 80, justifyContent: 'center' },
+  smallButtonContent: { flexDirection: 'row', alignItems: 'center' },
+  iconContainerSmall: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  smallButtonTextContainer: { flex: 1 },
+  smallButtonTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  smallButtonSubtitle: { fontSize: 11, fontWeight: '400', color: '#666' },
 
   infoSection: { marginTop: 40, paddingHorizontal: 24, alignItems: 'center' },
   infoTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 8 },
