@@ -41,18 +41,14 @@ export async function clearOrders() {
   }
 }
 
-export async function generateOrderId(): Promise<string> {
+export async function updateOrderStatus(orderId: string, status: Order['status']) {
   try {
-    const counterJson = await AsyncStorage.getItem(ORDER_COUNTER_KEY);
-    let counter = counterJson ? parseInt(counterJson, 10) : 0;
-    counter += 1;
-    await AsyncStorage.setItem(ORDER_COUNTER_KEY, counter.toString());
-    
-    const year = new Date().getFullYear();
-    const paddedCounter = counter.toString().padStart(6, '0');
-    return `P247-${year}-${paddedCounter}`;
+    const orders = await getOrders();
+    const updatedOrders = orders.map(o => 
+      o.id === orderId ? { ...o, status } : o
+    );
+    await AsyncStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
   } catch (error) {
-    console.error('Error generating order ID:', error);
-    return `P247-${Date.now()}`;
+    console.error('Error updating order status:', error);
   }
 }

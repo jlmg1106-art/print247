@@ -1,32 +1,42 @@
 import BottomBackButton from '@/components/BottomBackButton';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Clock3, XCircle, CheckCircle2, PackageCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '../contexts/OrderContext';
+import { getOrders, updateOrderStatus } from '@/lib/orders';
 
 type Status = 'pending' | 'cancelled' | 'completed';
 
 export default function OrderStatus() {
   const router = useRouter();
-    useEffect(() => {
-      const tmr = setTimeout(() => {
-        router.replace('/'); // vuelve a bienvenida
-      }, 10000);
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const [status, setStatus] = useState<Status>('pending');
+  const [loading, setLoading] = useState(true);
 
-      return () => clearTimeout(tmr);
-    }, []);
+  useEffect(() => {
+    loadStatus();
+    const tmr = setTimeout(() => {
+      router.replace('/');
+    }, 10000);
+
+    return () => clearTimeout(tmr);
+  }, [orderId]);
+
+  const loadStatus = async () => {
+    if (orderId) {
+      const orders = await getOrders();
+      const currentOrder = orders.find(o => o.id === orderId);
+      if (currentOrder) {
+        setStatus(currentOrder.status);
+      }
+    }
+    setLoading(false);
+  };
 
   const { t } = useTranslation();
   const order = useOrder() as any;
-
-  const initial: Status =
-    order?.orderStatus?.status === 'cancelled' ? 'cancelled'
-    : order?.orderStatus?.status === 'completed' ? 'completed'
-    : 'pending';
-
-  const [status, setStatus] = useState<Status>(initial);
 
   const meta = useMemo(() => {
   if (status === 'completed')
@@ -52,8 +62,11 @@ export default function OrderStatus() {
 
   const Icon = meta.icon;
 
-  const save = (s: Status) => {
+  const save = async (s: Status) => {
     setStatus(s);
+    if (orderId) {
+      await updateOrderStatus(orderId, s);
+    }
     try {
       if (order?.setOrderStatus) order.setOrderStatus({ status: s });
       else if (order?.setStatus) order.setStatus(s);
@@ -63,7 +76,9 @@ export default function OrderStatus() {
   return (
     <View style={styles.page}>
       <View style={styles.topBar}>
-        <Text style={styles.topTitle}>order-status</Text>
+        <Text style={styles.topTitle}>
+          {orderId ? `Pedido: ${orderId}` : 'order-status'}
+        </Text>
       </View>
 
       <View style={styles.content}>
