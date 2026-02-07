@@ -52,3 +52,18 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     console.error('Error updating order status:', error);
   }
 }
+
+export async function generateOrderId(prefix = 'P247'): Promise<string> {
+  try {
+    const counterJson = await AsyncStorage.getItem(ORDER_COUNTER_KEY);
+    let counter = counterJson ? parseInt(counterJson, 10) : 0;
+    counter += 1;
+    await AsyncStorage.setItem(ORDER_COUNTER_KEY, counter.toString());
+    
+    const paddedCounter = counter.toString().padStart(6, '0');
+    return `${prefix}-${paddedCounter}`;
+  } catch (error) {
+    console.error('Error generating order ID:', error);
+    return `${prefix}-${Date.now()}`;
+  }
+}
