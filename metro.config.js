@@ -2,9 +2,11 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+// Configuración para Replit (Web) y Expo Go (iOS)
 config.server = {
   ...config.server,
-  port: 5000,
+  // Solo forzamos el puerto 5000 si estamos en un entorno Replit para la previsualización web
+  port: process.env.REPLIT_SLUG ? 5000 : 8081,
   enhanceMiddleware: (middleware) => {
     return (req, res, next) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +25,7 @@ config.server = {
 
 if (config.resolver) {
   config.resolver.sourceExts.push('mjs');
-  // Avoid bundling issues with certain libraries in web
+  // Filtramos PDF de los assets para evitar problemas de bundling en web con pdf-lib
   config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'pdf');
 }
 
