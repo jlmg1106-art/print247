@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FileText, MapPin, Printer, Camera, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '../contexts/OrderContext';
+import { saveOrder, generateOrderId } from '@/lib/orders';
 
 function pickFirst(...vals: any[]) {
   for (const v of vals) {
@@ -66,9 +67,29 @@ export default function OrderSummary() {
 
   const confirmOrder = async () => {
     try {
-      order?.setStatus?.('submitted');
-    } catch (e) {}
-    router.push('/order-status');
+      const orderId = await generateOrderId();
+      
+      const newOrder = {
+        id: orderId,
+        createdAt: new Date().toISOString(),
+        flow: normalizedFlow as any,
+        locationName: pickFirst(loc?.name, loc?.locationName, loc?.title, '—'),
+        total: estimatedTotal,
+        status: 'pending' as const,
+      };
+
+      await saveOrder(newOrder);
+      
+      try {
+        order?.setStatus?.('submitted');
+      } catch (e) {}
+      
+      router.push({ pathname: '/order-success', params: { orderId } });
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      // Fallback a la navegación anterior si algo falla
+      router.push('/order-status');
+    }
   };
 
   const user = order?.userInfo;
