@@ -35,8 +35,8 @@ const resources = {
         documentsDesc: 'PDF, Word, Excel and more',
         photos: 'Photos',
         photosDesc: 'JPG, PNG, TIFF and more',
-        posters: 'Large Format Posters',
-        postersDesc: 'Events, marketing and advertising',
+        posters: 'Large Format',
+        postersDesc: 'Banners, posters, and architectural blueprints.',
       },
 
       userInfo: {
@@ -101,8 +101,8 @@ const resources = {
         documentsDesc: 'PDF, Word, Excel y más',
         photos: 'Fotografías',
         photosDesc: 'JPG, PNG, TIFF y más',
-        posters: 'Posters de Gran Formato',
-        postersDesc: 'Eventos, marketing y publicidad',
+        posters: 'Gran Formato',
+        postersDesc: 'Banners, pósters y planos arquitectónicos',
       },
 
       userInfo: {
