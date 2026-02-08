@@ -28,6 +28,11 @@ const resources = {
         formats: 'PDF • DOC • DOCX • JPG • PNG • TIFF • PSD',
         maxFiles: 'Max 5 files per order',
 
+        myOrders: 'My Orders',
+        myOrdersDesc: 'View saved',
+        trackOrder: 'Track',
+        trackOrderDesc: 'Search by ID',
+
         // SELECT-ORDER-TYPE (select-order-type.tsx)
         whatToPrint: 'What do you want to print?',
         selectServiceType: 'Choose the service you need',
@@ -93,6 +98,11 @@ const resources = {
         acceptedFormats: 'Formatos aceptados',
         formats: 'PDF • DOC • DOCX • JPG • PNG • TIFF • PSD',
         maxFiles: 'Máximo 5 archivos por pedido',
+
+        myOrders: 'Mis pedidos',
+        myOrdersDesc: 'Ver guardados',
+        trackOrder: 'Rastrear',
+        trackOrderDesc: 'Buscar por ID',
 
         // SELECT-ORDER-TYPE (select-order-type.tsx)
         whatToPrint: '¿Qué deseas imprimir?',

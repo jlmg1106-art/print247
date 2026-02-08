@@ -114,8 +114,8 @@ export default function Index() {
                     <Clock color="#0066FF" size={24} />
                   </View>
                   <View style={styles.smallButtonTextContainer}>
-                    <Text style={[styles.smallButtonTitle, { color: '#0066FF' }]}>Mis pedidos</Text>
-                    <Text style={styles.smallButtonSubtitle}>Ver guardados</Text>
+                    <Text style={[styles.smallButtonTitle, { color: '#0066FF' }]}>{t('landing.myOrders')}</Text>
+                    <Text style={styles.smallButtonSubtitle}>{t('landing.myOrdersDesc')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -130,8 +130,8 @@ export default function Index() {
                     <Search color="#fff" size={24} />
                   </View>
                   <View style={styles.smallButtonTextContainer}>
-                    <Text style={[styles.smallButtonTitle, { color: '#fff' }]}>Rastrear</Text>
-                    <Text style={[styles.smallButtonSubtitle, { color: 'rgba(255, 255, 255, 0.9)' }]}>Buscar por ID</Text>
+                    <Text style={[styles.smallButtonTitle, { color: '#fff' }]}>{t('landing.trackOrder')}</Text>
+                    <Text style={[styles.smallButtonSubtitle, { color: 'rgba(255, 255, 255, 0.9)' }]}>{t('landing.trackOrderDesc')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
