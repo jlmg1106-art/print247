@@ -118,7 +118,7 @@ export default function OrderStatus() {
 
       <View style={styles.bottom}>
         <View style={{ flex: 1 }}>
-          <BottomBackButton label="Atrás" />
+          <BottomBackButton label={t('common.atras', 'Atrás')} />
         </View>
       </View>
 

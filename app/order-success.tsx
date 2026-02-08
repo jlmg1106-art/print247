@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-na
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CheckCircle2, Home, Search } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useTranslation } from 'react-i18next';
 
 export default function OrderSuccessScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,9 +26,9 @@ export default function OrderSuccessScreen() {
           <CheckCircle2 size={100} color="#0B5FFF" />
         </View>
 
-        <Text style={styles.title}>Pedido Confirmado</Text>
+        <Text style={styles.title}>{t('success.title')}</Text>
         <Text style={styles.subtitle}>
-          Tu pedido <Text style={styles.orderId}>#{orderId}</Text> ha sido procesado con éxito.
+          {t('success.subtitle', { orderId: `#${orderId}` }).replace('#{{orderId}}', `#${orderId}`)}
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -35,7 +37,7 @@ export default function OrderSuccessScreen() {
             onPress={() => router.push({ pathname: '/order-status', params: { orderId } })}
           >
             <Search size={20} color="#FFF" style={styles.buttonIcon} />
-            <Text style={styles.primaryButtonText}>Ver estado</Text>
+            <Text style={styles.primaryButtonText}>{t('success.status')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -43,11 +45,11 @@ export default function OrderSuccessScreen() {
             onPress={() => router.replace('/')}
           >
             <Home size={20} color="#0B5FFF" style={styles.buttonIcon} />
-            <Text style={styles.secondaryButtonText}>Volver al inicio</Text>
+            <Text style={styles.secondaryButtonText}>{t('success.home')}</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footerText}>Redirigiendo al inicio en 10 segundos...</Text>
+        <Text style={styles.footerText}>{t('success.redirect')}</Text>
       </View>
     </SafeAreaView>
   );

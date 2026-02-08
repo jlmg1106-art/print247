@@ -207,16 +207,16 @@ export default function UploadFiles() {
 
           {deliveryEnabled ? (
             <View style={{ marginTop: 16 }}>
-              <Text style={styles.inputLabel}>Dirección de Entrega *</Text>
+              <Text style={styles.inputLabel}>{t('upload.deliveryAddress', 'Dirección de Entrega')} *</Text>
               <TextInput
                 value={deliveryAddress}
                 onChangeText={setDeliveryAddress}
-                placeholder="Ingresa la dirección completa de entrega..."
+                placeholder={t('upload.deliveryAddressPlaceholder', 'Ingresa la dirección completa de entrega...')}
                 placeholderTextColor="#9AA3AF"
                 style={styles.input}
               />
 
-              <Text style={[styles.inputLabel, { marginTop: 14 }]}>Distancia Estimada (millas) *</Text>
+              <Text style={[styles.inputLabel, { marginTop: 14 }]}>{t('upload.deliveryMiles', 'Distancia Estimada (millas)')} *</Text>
               <TextInput
                 value={deliveryMilesText}
                 onChangeText={(v) => setDeliveryMilesText(v.replace(/[^0-9.]/g, ''))}
@@ -227,10 +227,10 @@ export default function UploadFiles() {
               />
 
               <Text style={styles.feeText}>
-                Tarifa: $10.00 USD (primeras 20 millas) + $0.60 USD por milla después de 20
+                {t('upload.deliveryFeeNote', 'Tarifa: $10.00 USD (primeras 20 millas) + $0.60 USD por milla después de 20')}
               </Text>
               <Text style={styles.feeTextBold}>
-                Costo estimado delivery: ${deliveryFee.toFixed(2)} USD
+                {t('upload.deliveryCost', 'Costo estimado delivery')}: ${deliveryFee.toFixed(2)} USD
               </Text>
             </View>
           ) : null}
@@ -252,7 +252,7 @@ export default function UploadFiles() {
 
       <View style={styles.bottom}>
         <View style={{ flex: 1 }}>
-          <BottomBackButton label="Atrás" />
+          <BottomBackButton label={t('common.atras', 'Atrás')} />
         </View>
 
         <View style={{ flex: 1 }}>

@@ -359,7 +359,7 @@ export default function OrderSummary() {
       <View style={styles.bottom}>
         <View style={styles.bottomInner}>
           <View style={{ flex: 1 }}>
-            <BottomBackButton label="Atrás" />
+            <BottomBackButton label={t('common.atras', 'Atrás')} />
           </View>
 
           <View style={{ flex: 1 }}>
