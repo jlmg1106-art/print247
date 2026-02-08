@@ -25,6 +25,32 @@ export default function UserInfo() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
+  const formatPhoneNumber = (text: string) => {
+    // Eliminar todo lo que no sea número
+    const cleaned = text.replace(/\D/g, '');
+    
+    // Si empieza con 1 (EE.UU./Canada) o es un número de 10 dígitos
+    let formatted = cleaned;
+    if (cleaned.length > 0) {
+      if (cleaned.length <= 3) {
+        formatted = `(${cleaned}`;
+      } else if (cleaned.length <= 6) {
+        formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+      } else if (cleaned.length <= 10) {
+        formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+      } else {
+        // Para números internacionales o más largos
+        formatted = `+${cleaned.slice(0, cleaned.length - 10)} (${cleaned.slice(-10, -7)}) ${cleaned.slice(-7, -4)}-${cleaned.slice(-4)}`;
+      }
+    }
+    return formatted;
+  };
+
+  const handlePhoneChange = (text: string) => {
+    const formatted = formatPhoneNumber(text);
+    setPhone(formatted);
+  };
+
   const canContinue = useMemo(() => {
     const nameOk = fullName.trim().length >= 3;
     const phoneOk = phone.trim().length >= 7;
@@ -96,12 +122,13 @@ export default function UserInfo() {
             </View>
             <TextInput
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={handlePhoneChange}
               placeholder={t('userInfo.phonePlaceholder', '+1 (555) 123-4567')}
               placeholderTextColor="#A0A7B3"
               style={styles.input}
               keyboardType="phone-pad"
               returnKeyType="next"
+              maxLength={17}
             />
           </View>
 
