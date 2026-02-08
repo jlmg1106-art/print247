@@ -37,6 +37,8 @@ const MATERIALS = [
   { id: 'photo260', labelKey: 'posterConfig.materials.photo260', fallback: 'Photo Satin 260g' },
   { id: 'vinyl', labelKey: 'posterConfig.materials.vinyl', fallback: 'Vinyl Adhesivo' },
   { id: 'canvas', labelKey: 'posterConfig.materials.canvas', fallback: 'Canvas' },
+  { id: 'lona_vinilica', labelKey: 'posterConfig.materials.lonaVinilica', fallback: 'Lona Vinílica (Vinil Banner)' },
+  { id: 'microperforado', labelKey: 'posterConfig.materials.microperforado', fallback: 'Microperforado' },
 ];
 
 const LAMINATIONS = [

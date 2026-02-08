@@ -145,6 +145,8 @@ const resources = {
           photo260: 'Photo Satin 260g',
           vinyl: 'Adhesive Vinyl',
           canvas: 'Canvas',
+          lonaVinilica: 'Vinyl Banner (Vinyl Tarp)',
+          microperforado: 'Micro-Perforated',
         },
         laminations: {
           none: 'No lamination',
@@ -401,6 +403,8 @@ const resources = {
           photo260: 'Photo Satin 260g',
           vinyl: 'Vinyl Adhesivo',
           canvas: 'Canvas',
+          lonaVinilica: 'Lona Vinílica (Vinil Banner)',
+          microperforado: 'Microperforado',
         },
         laminations: {
           none: 'Sin laminado',
