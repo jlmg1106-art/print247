@@ -33,16 +33,16 @@ const POSTER_SIZES: PosterSize[] = [
 ];
 
 const MATERIALS = [
-  { id: 'poster200', label: 'Papel Poster 200g' },
-  { id: 'photo260', label: 'Photo Satin 260g' },
-  { id: 'vinyl', label: 'Vinyl Adhesivo' },
-  { id: 'canvas', label: 'Canvas' },
+  { id: 'poster200', labelKey: 'posterConfig.materials.poster200', fallback: 'Papel Poster 200g' },
+  { id: 'photo260', labelKey: 'posterConfig.materials.photo260', fallback: 'Photo Satin 260g' },
+  { id: 'vinyl', labelKey: 'posterConfig.materials.vinyl', fallback: 'Vinyl Adhesivo' },
+  { id: 'canvas', labelKey: 'posterConfig.materials.canvas', fallback: 'Canvas' },
 ];
 
 const LAMINATIONS = [
-  { id: 'none', label: 'Sin laminado' },
-  { id: 'matte', label: 'Mate' },
-  { id: 'gloss', label: 'Brillante' },
+  { id: 'none', labelKey: 'posterConfig.laminations.none', fallback: 'Sin laminado' },
+  { id: 'matte', labelKey: 'posterConfig.laminations.matte', fallback: 'Mate' },
+  { id: 'gloss', labelKey: 'posterConfig.laminations.gloss', fallback: 'Brillante' },
 ];
 
 export default function PosterConfig() {
@@ -96,7 +96,7 @@ export default function PosterConfig() {
 
         // size preset
         id: isCustom ? 'custom' : selected.id,
-        label: isCustom ? 'Personalizado' : selected.label,
+        label: isCustom ? t('posterConfig.custom', 'Personalizado') : selected.label,
         name: isCustom ? `${w} x ${h} cm` : selected.name,
 
         // medidas
@@ -108,8 +108,8 @@ export default function PosterConfig() {
         // material / laminado
         materialId,
         laminationId,
-        materialLabel: selectedMaterial?.label ?? '',
-        laminateLabel: selectedLamination?.label ?? '',
+        materialLabel: selectedMaterial ? t(selectedMaterial.labelKey, selectedMaterial.fallback) : '',
+        laminateLabel: selectedLamination ? t(selectedLamination.labelKey, selectedLamination.fallback) : '',
 
         // guardamos también los campos custom por si luego vuelves atrás
         customWcm,
@@ -140,7 +140,7 @@ export default function PosterConfig() {
 
  {/* Modo de tamaño */}
  <View style={styles.card}>
-   <Text style={styles.cardTitle}>Tamaño</Text>
+   <Text style={styles.cardTitle}>{t('posterConfig.size', 'Tamaño')}</Text>
 
    <View style={styles.segmentRow}>
      <TouchableOpacity
@@ -148,7 +148,7 @@ export default function PosterConfig() {
       onPress={() => setSizeMode('preset')}
      >
       <Text style={[styles.segmentText, sizeMode === 'preset' && styles.segmentTextActive]}>
-        Estándar
+        {t('posterConfig.standard', 'Estándar')}
       </Text>
     </TouchableOpacity>
 
@@ -157,7 +157,7 @@ export default function PosterConfig() {
       onPress={() => setSizeMode('custom')}
     >
       <Text style={[styles.segmentText, sizeMode === 'custom' && styles.segmentTextActive]}>
-        Personalizado
+        {t('posterConfig.custom', 'Personalizado')}
       </Text>
     </TouchableOpacity>
   </View>
@@ -166,7 +166,7 @@ export default function PosterConfig() {
 {/* Tamaños estándar */}
 {sizeMode === 'preset' && (
   <View style={styles.card}>
-    <Text style={styles.cardTitle}>Elige un tamaño</Text>
+    <Text style={styles.cardTitle}>{t('posterConfig.chooseSize', 'Elige un tamaño')}</Text>
 
     {POSTER_SIZES.map((s) => {
       const active = s.id === selectedId;
@@ -182,7 +182,7 @@ export default function PosterConfig() {
             </Text>
             <Text style={styles.optionSub}>
               {s.wIn && s.hIn ? `${s.wIn} x ${s.hIn} in` : ''}
-              {s.note ? ` · ${s.note}` : ''}
+              {s.note ? ` · ${t(`posterConfig.notes.${s.id.toLowerCase()}`, s.note)}` : ''}
             </Text>
           </View>
 
@@ -198,11 +198,11 @@ export default function PosterConfig() {
 {/* Tamaño personalizado */}
 {sizeMode === 'custom' && (
   <View style={styles.card}>
-    <Text style={styles.cardTitle}>Tamaño personalizado (cm)</Text>
+    <Text style={styles.cardTitle}>{t('posterConfig.customSize', 'Tamaño personalizado (cm)')}</Text>
 
     <View style={styles.inputRow}>
       <View style={styles.inputWrap}>
-        <Text style={styles.inputLabel}>Ancho</Text>
+        <Text style={styles.inputLabel}>{t('posterConfig.width', 'Ancho')}</Text>
         <TextInput
           value={customWcm}
           onChangeText={setCustomWcm}
@@ -213,7 +213,7 @@ export default function PosterConfig() {
       </View>
 
       <View style={styles.inputWrap}>
-        <Text style={styles.inputLabel}>Alto</Text>
+        <Text style={styles.inputLabel}>{t('posterConfig.height', 'Alto')}</Text>
         <TextInput
           value={customHcm}
           onChangeText={setCustomHcm}
@@ -228,7 +228,7 @@ export default function PosterConfig() {
 
 {/* Material */}
 <View style={styles.card}>
-  <Text style={styles.cardTitle}>Material</Text>
+  <Text style={styles.cardTitle}>{t('posterConfig.material', 'Material')}</Text>
 
   {MATERIALS.map((m) => {
   const active = m.id === materialId;
@@ -240,7 +240,7 @@ export default function PosterConfig() {
       activeOpacity={0.85}
     >
       <View style={{ flex: 1 }}>
-        <Text style={[styles.optionTitle, active && styles.optionTitleActive]}>{m.label}</Text>
+        <Text style={[styles.optionTitle, active && styles.optionTitleActive]}>{t(m.labelKey, m.fallback)}</Text>
       </View>
 
       <View style={[styles.checkCircle, active && styles.checkCircleSelected]}>
@@ -254,7 +254,7 @@ export default function PosterConfig() {
 
 {/* Laminado */}
 <View style={styles.card}>
-  <Text style={styles.cardTitle}>Laminado</Text>
+  <Text style={styles.cardTitle}>{t('posterConfig.laminate', 'Laminado')}</Text>
 
   {LAMINATIONS.map((l) => {
   const active = l.id === laminationId;
@@ -266,7 +266,7 @@ export default function PosterConfig() {
       activeOpacity={0.85}
     >
       <View style={{ flex: 1 }}>
-        <Text style={[styles.optionTitle, active && styles.optionTitleActive]}>{l.label}</Text>
+        <Text style={[styles.optionTitle, active && styles.optionTitleActive]}>{t(l.labelKey, l.fallback)}</Text>
       </View>
 
       <View style={[styles.checkCircle, active && styles.checkCircleSelected]}>
@@ -282,7 +282,7 @@ export default function PosterConfig() {
 
         <View style={styles.bottom}>
           <View style={{ flex: 1 }}>
-           <BottomBackButton label="Atrás" />
+           <BottomBackButton label={t('common.atras', 'Atrás')} />
           </View>
 
           <View style={{ flex: 1 }}>

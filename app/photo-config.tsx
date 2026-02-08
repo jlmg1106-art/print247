@@ -215,7 +215,7 @@ export default function PhotoConfig() {
                   <TextInput
                     value={customWIn}
                     onChangeText={setCustomWIn}
-                    placeholder="Ej: 12"
+                    placeholder={t('photoConfig.placeholderEx', 'Ej: 12')}
                     keyboardType="decimal-pad"
                     style={styles.input}
                   />
@@ -225,14 +225,14 @@ export default function PhotoConfig() {
                   <TextInput
                     value={customHIn}
                     onChangeText={setCustomHIn}
-                    placeholder="Ej: 18"
+                    placeholder={t('photoConfig.placeholderEx', 'Ej: 18')}
                     keyboardType="decimal-pad"
                     style={styles.input}
                   />
                 </View>
               </View>
               <Text style={styles.smallMuted}>
-                cm aprox: {customCm.wCm || '—'} x {customCm.hCm || '—'}
+                {t('photoConfig.cmApprox', 'cm aprox')}: {customCm.wCm || '—'} x {customCm.hCm || '—'}
               </Text>
             </View>
           ) : null}

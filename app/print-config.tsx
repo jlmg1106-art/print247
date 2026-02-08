@@ -164,7 +164,7 @@ export default function PrintConfig() {
   return (
     <View style={styles.page}>
       <View style={styles.topBar}>
-        <Text style={styles.topTitle}>print-config</Text>
+        <Text style={styles.topTitle}>{t('printConfig.title', 'Configuración de Impresión')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -231,7 +231,7 @@ export default function PrintConfig() {
 
       <View style={styles.bottom}>
         <View style={{ flex: 1 }}>
-          <BottomBackButton label="Atrás" />
+          <BottomBackButton label={t('common.atras', 'Atrás')} />
         </View>
       
         <View style={{ flex: 1 }}>

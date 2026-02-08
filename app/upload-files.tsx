@@ -113,12 +113,12 @@ export default function UploadFiles() {
         fee: deliveryEnabled ? deliveryFee : 0,
       });
 
-      // si tu printConfig existe, actualizamos pagesTotal sumando PDFs
+      // si tu printConfig existe, actualizamos totalPages sumando PDFs
       if (order.printConfig) {
         const totalPages = files.reduce((acc, f) => acc + (Number(f.pages) || 0), 0);
         order.setPrintConfig({
           ...order.printConfig,
-          pagesTotal: totalPages > 0 ? totalPages : order.printConfig.pagesTotal,
+          totalPages: totalPages > 0 ? totalPages : order.printConfig.totalPages,
         });
       }
     } catch (e) {}

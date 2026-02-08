@@ -84,10 +84,7 @@ export default function SelectLocation() {
         whatsapp: '',
       };
 
-      if (order?.setLocation) order.setLocation(payload);
-      else if (order?.setSelectedLocation) order.setSelectedLocation(payload);
-      else if (order?.setBranch) order.setBranch(payload);
-      else if (order?.setReceptor) order.setReceptor(payload);
+      order.setSelectedLocation(payload);
     } catch (e) {}
 
     // Próximo paso (después de sede)

@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 ### Navigation Structure
 - Tab-based navigation at root level (`/app/(tabs)/`)
 - Stack-based modal screens for the order flow
-- Order flow screens: `select-order-type` → `user-info` → `upload-files` → print/photo/poster config → `select-location` → `order-summary` → `order-status`
+- Order flow: `select-order-type` → `user-info` → `select-location` → print/photo/poster config → `upload-files` → `order-summary` → `order-success` → `order-status`
 
 ### State Management
 - **React Context API** (`/contexts/OrderContext.tsx`) - Centralized order state management
@@ -26,8 +26,9 @@ Preferred communication style: Simple, everyday language.
 - No external state management library (Redux, Zustand) - Context is sufficient for current scope
 
 ### Internationalization
-- **i18next + react-i18next** - Multi-language support (English/Spanish)
-- Translation resources defined in `/i18n.ts`
+- **i18next + react-i18next** - Full bilingual support (English/Spanish)
+- Translation resources defined in `/i18n.ts` with namespaces: landing, common, photoConfig, printConfig, posterConfig, photoSizes, upload, summary, success, status, orders, track, location
+- All screens fully internationalized - no hardcoded user-facing strings
 - Language selector component for runtime switching
 
 ### UI Components
@@ -69,7 +70,26 @@ Preferred communication style: Simple, everyday language.
 - Backend API for order submission (frontend-only currently)
 - WhatsApp integration for receptor communication (UI ready, no implementation)
 
+### Order Storage
+- **AsyncStorage** for local order history (no backend required)
+- Storage keys: `printing247_orders`, `printing247_order_counter`
+- Orders persisted with full configuration details for history viewing
+
 ### Development Environment
-- Metro server configured on port 5000 for Replit compatibility
+- Metro server configured on port 5000 for Replit compatibility (dynamic detection: 5000 for Replit, 8081 for local)
 - ESLint with Expo configuration
 - TypeScript strict mode with path aliases (`@/*`)
+
+### Design System
+- Primary blue: `#0B5FFF`
+- Border color: `#EEF2F7`
+- Bold typography with font weights 700-900
+- Consistent card-based UI with rounded corners (16px radius)
+- Phone number auto-formatting: `(555) 123-4567`
+
+## Recent Changes
+- Full i18n coverage for all order flow screens (print-config, photo-config, poster-config, upload-files, order-summary, order-success, order-status)
+- Fixed TypeScript type consistency: `totalPages` field used consistently across PrintConfig type, upload-files, and order-summary
+- Fixed select-location.tsx to use correct `setSelectedLocation()` context method
+- Removed duplicate style properties in order-summary
+- MATERIALS/LAMINATIONS arrays in poster-config use labelKey/fallback pattern for i18n

@@ -115,7 +115,7 @@ export default function OrderSummary() {
 
     // Print flow (por ahora: si no hay pricing definido, retorna 0)
     // Si más adelante conectas backend, esto se reemplaza por el cálculo real.
-    const pages = safeNumber(order?.pagesTotal ?? printConfig?.pagesTotal ?? printConfig?.pages ?? 1, 1);
+    const pages = safeNumber(printConfig?.totalPages ?? 1, 1);
     const copies = safeNumber(printConfig?.copies ?? 1, 1);
 
     // Si existe un precio unitario en tu config (aunque sea provisional), úsalo:
@@ -123,7 +123,7 @@ export default function OrderSummary() {
 
     const total = pages * copies * unit;
     return Number.isFinite(total) ? total : 0;
-  }, [isPhotoFlow, photoConfig, printConfig, order?.pagesTotal]);
+  }, [isPhotoFlow, photoConfig, printConfig]);
 
   return (
     <View style={styles.container}>
@@ -284,7 +284,7 @@ export default function OrderSummary() {
               />
               <Row
                 label={t('summary.pages', 'Páginas Totales')}
-                value={pickFirst(order?.pagesTotal, printConfig?.pagesTotal, printConfig?.pages, '—')}
+                value={pickFirst(printConfig?.totalPages, '—')}
               />
               <Row
                 label={t('summary.copies', 'Copias')}
@@ -526,5 +526,4 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 
-  ctaText: { color: '#FFFFFF', fontSize: 18, fontWeight: '900' },
 });
