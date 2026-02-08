@@ -133,7 +133,13 @@ export default function UploadFiles() {
   return (
     <View style={styles.page}>
       <View style={styles.topBar}>
-        <Text style={styles.topTitle}>upload-files</Text>
+        <Text style={styles.topTitle}>
+          {isPosterFlow
+            ? t('posterConfig.title', 'Gran Formato')
+            : isPhotoFlow
+              ? t('upload.photoTitle', 'Subir fotos')
+              : t('upload.title', 'Subir documentos')}
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -145,7 +151,7 @@ export default function UploadFiles() {
 
         <Text style={styles.h1}>
          {isPosterFlow
-           ? t('upload.posterTitle', 'Subir archivo del póster')
+           ? t('upload.posterTitle', 'Subir archivo de gran formato')
            : isPhotoFlow
              ? t('upload.photoTitle', 'Subir fotos')
              : t('upload.title', 'Subir documentos')}
@@ -153,7 +159,7 @@ export default function UploadFiles() {
 
         <Text style={styles.sub}>
          {isPosterFlow
-           ? t('upload.posterSubtitle', 'Selecciona la imagen o PDF que irá impreso en tu póster')
+           ? t('upload.posterSubtitle', 'Selecciona la imagen o PDF para tu impresión de gran formato')
            : isPhotoFlow
              ? t('upload.photoSubtitle', 'Elige tus fotos y la cantidad')
              : t('upload.subtitle', 'Selecciona tus archivos para imprimir')}

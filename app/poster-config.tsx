@@ -126,7 +126,7 @@ export default function PosterConfig() {
   return (
     <View style={styles.page}>
       <View style={styles.topBar}>
-       <Text style={styles.topTitle}>{t('posterConfig.title', 'Pósters')}</Text>
+       <Text style={styles.topTitle}>{t('posterConfig.title', 'Gran Formato')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -134,8 +134,8 @@ export default function PosterConfig() {
           <View style={styles.iconWrap}>
             <Megaphone color="#FF6B35" size={24} />
           </View>
-          <Text style={styles.h1}>{t('posterConfig.title', 'Pósters')}</Text>
-          <Text style={styles.sub}>{t('posterConfig.subtitle', 'Elige el tamaño del póster')}</Text>
+          <Text style={styles.h1}>{t('posterConfig.title', 'Gran Formato')}</Text>
+          <Text style={styles.sub}>{t('posterConfig.subtitle', 'Configura tu impresión de gran formato')}</Text>
         </View>
 
  {/* Modo de tamaño */}

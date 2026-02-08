@@ -129,7 +129,7 @@ export default function OrderSummary() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.topBar}>
-        <Text style={styles.topTitle}>order-summary</Text>
+        <Text style={styles.topTitle}>{t('summary.title', 'Resumen del Pedido')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -210,7 +210,7 @@ export default function OrderSummary() {
            </View>
           <Text style={styles.sectionTitle}>
             {isPosterFlow
-              ? t('summary.posterConfig', 'Configuración del Póster')
+              ? t('summary.posterConfig', 'Configuración de Gran Formato')
               : isPhotoFlow
                 ? t('summary.photoConfig', 'Configuración de Fotografía')
                 : t('summary.printConfig', 'Configuración de Impresión')}
