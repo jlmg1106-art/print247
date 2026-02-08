@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Search, Hash } from 'lucide-react-native';
+import { Search, Hash, Home } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 
 export default function OrderTrackScreen() {
@@ -17,6 +17,15 @@ export default function OrderTrackScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
+      <View style={styles.topHeader}>
+        <TouchableOpacity 
+          style={styles.homeButton} 
+          onPress={() => router.replace('/')}
+          activeOpacity={0.7}
+        >
+          <Home size={20} color="#0B5FFF" />
+        </TouchableOpacity>
+      </View>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -66,6 +75,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  topHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  homeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F7FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,

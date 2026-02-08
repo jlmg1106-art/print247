@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-import { ShoppingBag, Clock, MapPin, ChevronRight } from 'lucide-react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import { ShoppingBag, Clock, MapPin, ChevronRight, Home } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { getOrders, Order } from '@/lib/orders';
 import { useRouter } from 'expo-router';
@@ -37,7 +37,15 @@ export default function OrdersScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.homeButton} 
+          onPress={() => router.replace('/')}
+          activeOpacity={0.7}
+        >
+          <Home size={20} color="#0B5FFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Mis pedidos</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       {!loading && orders.length === 0 ? (
@@ -108,6 +116,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: '#11181C',
+    flex: 1,
+    textAlign: 'center',
+  },
+  homeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F7FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
