@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Keyb
 import { useRouter } from 'expo-router';
 import { Search, Hash, Home } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useTranslation } from 'react-i18next';
 
 export default function OrderTrackScreen() {
+  const { t } = useTranslation();
   const [orderId, setOrderId] = useState('');
   const router = useRouter();
 
@@ -32,8 +34,8 @@ export default function OrderTrackScreen() {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Rastrear Pedido</Text>
-            <Text style={styles.subtitle}>Introduce el ID de tu pedido para ver el estado actual.</Text>
+            <Text style={styles.title}>{t('track.title')}</Text>
+            <Text style={styles.subtitle}>{t('track.subtitle')}</Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -42,7 +44,7 @@ export default function OrderTrackScreen() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Ej: PRT-123456"
+              placeholder={t('track.placeholder')}
               placeholderTextColor="#9BA1A6"
               value={orderId}
               onChangeText={setOrderId}
@@ -57,12 +59,12 @@ export default function OrderTrackScreen() {
             disabled={!orderId.trim()}
           >
             <Search size={20} color="#FFF" style={styles.buttonIcon} />
-            <Text style={styles.searchButtonText}>Buscar pedido</Text>
+            <Text style={styles.searchButtonText}>{t('track.button')}</Text>
           </TouchableOpacity>
 
           <View style={styles.infoCard}>
             <Text style={styles.infoText}>
-              Encontrarás el ID del pedido en tu correo de confirmación o en el historial de pedidos.
+              {t('track.info')}
             </Text>
           </View>
         </View>

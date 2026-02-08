@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
-import { ShoppingBag, Clock, MapPin, ChevronRight, Home } from 'lucide-react-native';
+import { ShoppingBag, Clock, MapPin, Home } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { getOrders, Order } from '@/lib/orders';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function OrdersScreen() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -33,6 +35,14 @@ export default function OrdersScreen() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return t('orders.completed');
+      case 'cancelled': return t('orders.cancelled');
+      default: return t('orders.pending');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -44,7 +54,7 @@ export default function OrdersScreen() {
         >
           <Home size={20} color="#0B5FFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mis pedidos</Text>
+        <Text style={styles.headerTitle}>{t('orders.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -53,8 +63,8 @@ export default function OrdersScreen() {
           <View style={styles.iconCircle}>
             <ShoppingBag size={48} color="#0B5FFF" opacity={0.5} />
           </View>
-          <Text style={styles.emptyTitle}>No hay pedidos aún</Text>
-          <Text style={styles.emptySubtitle}>Aquí aparecerán tus pedidos una vez que realices uno.</Text>
+          <Text style={styles.emptyTitle}>{t('orders.emptyTitle')}</Text>
+          <Text style={styles.emptySubtitle}>{t('orders.emptySubtitle')}</Text>
         </View>
       ) : (
         <FlatList
@@ -73,7 +83,7 @@ export default function OrdersScreen() {
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '15' }]}>
                   <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-                    {item.status === 'pending' ? 'Pendiente' : item.status === 'completed' ? 'Completado' : 'Cancelado'}
+                    {getStatusLabel(item.status)}
                   </Text>
                 </View>
               </View>

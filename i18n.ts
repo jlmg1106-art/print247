@@ -70,6 +70,23 @@ const resources = {
         continue: 'Continue',
         noResults: 'No locations found',
       },
+
+      orders: {
+        title: 'My Orders',
+        emptyTitle: 'No orders yet',
+        emptySubtitle: 'Your orders will appear here once you place one.',
+        pending: 'Pending',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+      },
+
+      track: {
+        title: 'Track Order',
+        subtitle: 'Enter your order ID to see the current status.',
+        placeholder: 'Ex: P247-2026-000001',
+        button: 'Search order',
+        info: 'You will find the order ID in your confirmation email or in your order history.',
+      },
     },
   },
 
@@ -140,6 +157,23 @@ const resources = {
         select: 'Seleccionar',
         continue: 'Continuar',
         noResults: 'No se encontraron sedes',
+      },
+
+      orders: {
+        title: 'Mis pedidos',
+        emptyTitle: 'No hay pedidos aún',
+        emptySubtitle: 'Aquí aparecerán tus pedidos una vez que realices uno.',
+        pending: 'Pendiente',
+        completed: 'Completado',
+        cancelled: 'Cancelado',
+      },
+
+      track: {
+        title: 'Rastrear Pedido',
+        subtitle: 'Introduce el ID de tu pedido para ver el estado actual.',
+        placeholder: 'Ej: P247-2026-000001',
+        button: 'Buscar pedido',
+        info: 'Encontrarás el ID del pedido en tu correo de confirmación o en el historial de pedidos.',
       },
     },
   },
