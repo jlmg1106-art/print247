@@ -87,7 +87,7 @@ const resources = {
         getStarted: 'Empezar',
         startPrinting: 'Imprimir Ahora',
         startPrintingDesc: 'Sube archivos y elige servicio.',
-        becomeReceptor: 'Ser Receptor',
+        becomeReceptor: 'Conviértete en Receptor',
         becomeReceptorDesc: 'Únete a la red y gana.',
 
         acceptedFormats: 'Formatos aceptados',
