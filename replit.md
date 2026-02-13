@@ -111,3 +111,4 @@ Preferred communication style: Simple, everyday language.
 - `photo-config.tsx`: payload now matches `PhotoConfig` type exactly (sizeCode, label, widthIn, heightIn, widthCm, heightCm, quantity, price)
 - Full i18n coverage for all order flow screens
 - MATERIALS/LAMINATIONS arrays in poster-config use labelKey/fallback pattern for i18n
+- **Firebase security rules**: Added `firebase.rules.firestore.txt` and `firebase.rules.storage.txt` with recommended rules (not auto-deployed). `FIREBASE_SECURITY.md` documents deployment steps, admin claim setup, and TODOs (customerUid for client self-read, auth requirement for Storage writes before production).
