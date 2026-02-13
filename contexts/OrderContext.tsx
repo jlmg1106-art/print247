@@ -109,6 +109,9 @@ export type OrderContextValue = {
   status: OrderStatus;
   setStatus: (s: OrderStatus) => void;
 
+  orderId: string | null;
+  setOrderId: (id: string | null) => void;
+
   isReadyForSummary: () => boolean;
   getMissingForSummary: () => string[];
   isReadyToSubmit: () => boolean;
@@ -136,6 +139,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<string>('');
   const [delivery, setDelivery] = useState<DeliveryInfo>(DEFAULT_DELIVERY);
   const [status, setStatus] = useState<OrderStatus>('draft');
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const resetOrder = useCallback(() => {
     setOrderType(null);
@@ -148,6 +152,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     setNotes('');
     setDelivery(DEFAULT_DELIVERY);
     setStatus('draft');
+    setOrderId(null);
   }, []);
 
   const hasConfig = useCallback(() => {
@@ -205,12 +210,14 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       setDelivery,
       status,
       setStatus,
+      orderId,
+      setOrderId,
       isReadyForSummary,
       getMissingForSummary,
       isReadyToSubmit,
       resetOrder,
     }),
-    [orderType, userInfo, selectedLocation, printConfig, photoConfig, posterConfig, files, notes, delivery, status, isReadyForSummary, getMissingForSummary, isReadyToSubmit, resetOrder]
+    [orderType, userInfo, selectedLocation, printConfig, photoConfig, posterConfig, files, notes, delivery, status, orderId, isReadyForSummary, getMissingForSummary, isReadyToSubmit, resetOrder]
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

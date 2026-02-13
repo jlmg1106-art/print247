@@ -6,6 +6,8 @@ import { FileText, MapPin, Printer, Camera, Sparkles, CheckCircle2 } from 'lucid
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '../contexts/OrderContext';
 import { saveOrder, generateOrderId } from '@/lib/orders';
+import { createOrderDoc } from '@/src/services/orders';
+import type { OrderDraft, OrderFlow } from '@/src/types/order';
 
 function safeNumber(v: unknown, fallback = 0) {
   const n = Number(v);
@@ -72,21 +74,64 @@ export default function OrderSummary() {
     }
 
     try {
-      const orderId = await generateOrderId();
+      const flowMap: Record<string, OrderFlow> = { document: 'print', photo: 'photo', poster: 'poster' };
+      const flow: OrderFlow = flowMap[orderType ?? ''] ?? 'print';
 
-      const flowMap: Record<string, string> = { document: 'print', photo: 'photo', poster: 'poster' };
-      const newOrder = {
-        id: orderId,
+      const config = isPosterFlow && posterConfig
+        ? posterConfig
+        : isPhotoFlow && photoConfig
+          ? photoConfig
+          : printConfig ?? {};
+
+      const draft: OrderDraft = {
+        orderType: flow,
+        branchId: selectedLocation?.id ?? '',
+        userInfo: {
+          fullName: userInfo?.fullName ?? '',
+          phone: userInfo?.phone ?? '',
+          email: userInfo?.email ?? '',
+        },
+        delivery: {
+          enabled: delivery.enabled,
+          address: delivery.address,
+          miles: delivery.miles,
+          fee: delivery.fee,
+        },
+        notes: order.notes,
+        config,
+        filesMetadata: files.map((f) => ({
+          name: f.name,
+          size: f.size,
+          mimeType: f.mimeType,
+          pages: f.pages,
+        })),
+        estimatedTotal,
+      };
+
+      let firestoreOrderId: string | null = null;
+      try {
+        const result = await createOrderDoc(draft);
+        firestoreOrderId = result.orderId;
+      } catch (firestoreErr) {
+        console.warn('Firestore write failed (offline or not configured), saving locally only:', firestoreErr);
+      }
+
+      const localOrderId = firestoreOrderId ?? await generateOrderId();
+
+      const localOrder = {
+        id: localOrderId,
         createdAt: new Date().toISOString(),
-        flow: (flowMap[orderType ?? ''] ?? 'print') as 'poster' | 'photo' | 'print',
+        flow,
         locationName: selectedLocation?.name ?? '—',
         total: estimatedTotal,
         status: 'pending' as const,
       };
 
-      await saveOrder(newOrder);
+      await saveOrder(localOrder);
+
+      order.setOrderId(localOrderId);
       order.setStatus('submitted');
-      router.push({ pathname: '/order-success', params: { orderId } });
+      router.push({ pathname: '/order-success', params: { orderId: localOrderId } });
     } catch (error) {
       console.error('Error confirming order:', error);
       Alert.alert('Error', t('summary.confirmError', 'No se pudo confirmar el pedido. Intenta de nuevo.'));
