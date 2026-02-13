@@ -22,7 +22,7 @@ export default function Index() {
             <LanguageSelector variant="dark" />
             <TouchableOpacity
               style={styles.adminButton}
-              onPress={() => router.push('/admin/login' as any)}
+              onPress={() => router.push('/admin/login')}
               activeOpacity={0.7}
             >
               <Settings color="#fff" size={20} />
@@ -73,7 +73,7 @@ export default function Index() {
 
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={() => router.push('/select-order-type' as any)}
+              onPress={() => router.push('/select-order-type')}
               activeOpacity={0.8}
             >
               <View style={styles.buttonContent}>
@@ -89,7 +89,7 @@ export default function Index() {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/user-info' as any)}
+              onPress={() => router.push('/user-info')}
               activeOpacity={0.8}
             >
               <View style={styles.buttonContent}>

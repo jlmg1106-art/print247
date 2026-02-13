@@ -1,40 +1,26 @@
 import BottomBackButton from '@/components/BottomBackButton';
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Platform } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Platform, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { FileText, MapPin, Printer, Camera, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '../contexts/OrderContext';
 import { saveOrder, generateOrderId } from '@/lib/orders';
 
-function pickFirst(...vals: any[]) {
-  for (const v of vals) {
-    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
-  }
-  return undefined;
-}
-
-function safeNumber(v: any, fallback = 0) {
+function safeNumber(v: unknown, fallback = 0) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function formatMoney(v: any) {
+function formatMoney(v: unknown) {
   const n = safeNumber(v, 0);
   return `$${n.toFixed(2)} USD`;
 }
 
-function Row({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
-  const show = value === 0 ? '0' : value ? String(value) : '—'; 
-
+function Row({ label, value }: { label: string; value: string | number | null | undefined }) {
+  const show = value === 0 ? '0' : value ? String(value) : '—';
   return (
-<View style={styles.row}>
+    <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
       <Text style={styles.rowValue}>{show}</Text>
     </View>
@@ -44,90 +30,71 @@ function Row({
 export default function OrderSummary() {
   const router = useRouter();
   const { t } = useTranslation();
-  const order = useOrder() as any;
-  const params = useLocalSearchParams() as any;
+  const order = useOrder();
 
-  const normalizedFlow = String( 
-    params?.flow ?? order?.flow ?? order?.type ?? order?.category ?? '' 
-  ).toLowerCase();
+  const { orderType, userInfo, selectedLocation, printConfig, photoConfig, posterConfig, files, delivery } = order;
 
-  const posterConfig =
-    order?.posterConfig ??
-    order?.poster ??
-    order?.posterSettings ??
-    null;
+  const isPosterFlow = orderType === 'poster';
+  const isPhotoFlow = orderType === 'photo';
 
-  const photoConfig = order?.photoConfig ?? null;
-  const printConfig = order?.printConfig ?? null;
+  const estimatedTotal = useMemo(() => {
+    if (isPhotoFlow && photoConfig) {
+      const qty = safeNumber(photoConfig.quantity, 1);
+      const price = safeNumber(photoConfig.price, 0);
+      return qty * price;
+    }
 
-  // 🔒 Flujo único y definitivo para Order Summary
-  const isPosterFlow = normalizedFlow === 'poster';
-  const isPhotoFlow  = normalizedFlow === 'photo';
-  const isPrintFlow  = !isPosterFlow && !isPhotoFlow;
+    if (printConfig) {
+      const pages = safeNumber(printConfig.totalPages ?? 1, 1);
+      const copies = safeNumber(printConfig.copies ?? 1, 1);
+      const total = pages * copies * 0;
+      return Number.isFinite(total) ? total : 0;
+    }
+
+    return 0;
+  }, [isPhotoFlow, photoConfig, printConfig]);
+
+  const whatsappLink = useMemo(() => {
+    const raw = selectedLocation?.whatsapp ?? '';
+    const s = String(raw).trim();
+    return s || null;
+  }, [selectedLocation]);
 
   const confirmOrder = async () => {
+    const missing = order.getMissingForSummary();
+    if (missing.length > 0) {
+      Alert.alert(
+        t('summary.missingTitle', 'Datos incompletos'),
+        t('summary.missingDesc', 'Faltan datos requeridos para confirmar el pedido. Revisa los pasos anteriores.'),
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       const orderId = await generateOrderId();
-      
+
+      const flowMap: Record<string, string> = { document: 'print', photo: 'photo', poster: 'poster' };
       const newOrder = {
         id: orderId,
         createdAt: new Date().toISOString(),
-        flow: normalizedFlow as any,
-        locationName: pickFirst(loc?.name, loc?.locationName, loc?.title, '—'),
+        flow: (flowMap[orderType ?? ''] ?? 'print') as 'poster' | 'photo' | 'print',
+        locationName: selectedLocation?.name ?? '—',
         total: estimatedTotal,
         status: 'pending' as const,
       };
 
       await saveOrder(newOrder);
-      
-      try {
-        order?.setStatus?.('submitted');
-      } catch (e) {}
-      
+      order.setStatus('submitted');
       router.push({ pathname: '/order-success', params: { orderId } });
     } catch (error) {
       console.error('Error confirming order:', error);
-      // Fallback a la navegación anterior si algo falla
-      router.push('/order-status');
+      Alert.alert('Error', t('summary.confirmError', 'No se pudo confirmar el pedido. Intenta de nuevo.'));
     }
   };
 
-  const user = order?.userInfo;
-  const loc = order?.selectedLocation;
-  const files = Array.isArray(order?.files) ? order.files : [];
-  const delivery = order?.delivery;
-
-  const whatsappLink = useMemo(() => {
-    const raw =
-      pickFirst(loc?.whatsappLink, loc?.whatsapp, loc?.whatsapp_url, loc?.whatsappUrl) ?? '';
-    const s = String(raw).trim();
-    if (!s) return null;
-    return s;
-  }, [loc]);
-
-  // --- Estimado (evita NaN sí o sí) ---
-  const estimatedTotal = useMemo(() => {
-    if (isPhotoFlow) {
-      const qty = safeNumber(photoConfig?.quantity ?? photoConfig?.qty ?? 1, 1);
-      const price = safeNumber(photoConfig?.price ?? photoConfig?.unitPrice ?? 0, 0);
-      return qty * price;
-    }
-
-    // Print flow (por ahora: si no hay pricing definido, retorna 0)
-    // Si más adelante conectas backend, esto se reemplaza por el cálculo real.
-    const pages = safeNumber(printConfig?.totalPages ?? 1, 1);
-    const copies = safeNumber(printConfig?.copies ?? 1, 1);
-
-    // Si existe un precio unitario en tu config (aunque sea provisional), úsalo:
-    const unit = safeNumber(printConfig?.unitPrice ?? printConfig?.pricePerPage ?? 0, 0);
-
-    const total = pages * copies * unit;
-    return Number.isFinite(total) ? total : 0;
-  }, [isPhotoFlow, photoConfig, printConfig]);
-
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.topBar}>
         <Text style={styles.topTitle}>{t('summary.title', 'Resumen del Pedido')}</Text>
         <View style={{ width: 40 }} />
@@ -149,7 +116,6 @@ export default function OrderSummary() {
           </View>
         </View>
 
-        {/* 1) Información del usuario */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionIcon}>
             <FileText size={18} color="#0B5FFF" />
@@ -160,21 +126,11 @@ export default function OrderSummary() {
         </View>
 
         <View style={styles.card}>
-          <Row
-            label={t('summary.name', 'Nombre')}
-            value={pickFirst(user?.fullName, user?.name, user?.nombre, '—')}
-          />
-          <Row
-            label={t('summary.phone', 'Teléfono')}
-            value={pickFirst(user?.phone, user?.telefono, user?.tel, '—')}
-          />
-          <Row
-            label={t('summary.email', 'Email')}
-            value={pickFirst(user?.email, user?.correo, '—')}
-          />
+          <Row label={t('summary.name', 'Nombre')} value={userInfo?.fullName ?? '—'} />
+          <Row label={t('summary.phone', 'Teléfono')} value={userInfo?.phone ?? '—'} />
+          <Row label={t('summary.email', 'Email')} value={userInfo?.email ?? '—'} />
         </View>
 
-        {/* 2) Sede */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionIcon}>
             <MapPin size={18} color="#0B5FFF" />
@@ -183,15 +139,9 @@ export default function OrderSummary() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.locationName}>
-            {pickFirst(loc?.name, loc?.locationName, loc?.title, '—')}
-          </Text>
-          <Text style={styles.locationAddress}>
-            {pickFirst(loc?.city, loc?.address, loc?.direccion, '—')}
-          </Text>
-          <Text style={styles.locationCountry}>
-            {pickFirst(loc?.country, loc?.pais, '—')}
-          </Text>
+          <Text style={styles.locationName}>{selectedLocation?.name ?? '—'}</Text>
+          <Text style={styles.locationAddress}>{selectedLocation?.city ?? selectedLocation?.address ?? '—'}</Text>
+          <Text style={styles.locationCountry}>{selectedLocation?.country ?? '—'}</Text>
 
           <TouchableOpacity
             style={[styles.whatsBtn, !whatsappLink && styles.whatsBtnDisabled]}
@@ -203,7 +153,6 @@ export default function OrderSummary() {
           </TouchableOpacity>
         </View>
 
-        {/* 3) Configuración (Foto o Impresión) */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionIcon}>
             {isPosterFlow ? <Sparkles size={18} color="#0B5FFF" /> : isPhotoFlow ? <Camera size={18} color="#0B5FFF" /> : <Printer size={18} color="#0B5FFF" />}
@@ -218,49 +167,40 @@ export default function OrderSummary() {
         </View>
 
         <View style={styles.card}>
-          {isPosterFlow ? (
+          {isPosterFlow && posterConfig ? (
             <>
              <Row
                label={t('posterConfig.size', 'Tamaño')}
                value={
-                posterConfig?.sizeMode === 'custom'
-                  ? pickFirst(
-                      posterConfig?.name,
-                      posterConfig?.wCm && posterConfig?.hCm ? `${posterConfig.wCm} x ${posterConfig.hCm} cm` : '',
-                      posterConfig?.customWcm && posterConfig?.customHcm ? `${posterConfig.customWcm} x ${posterConfig.customHcm} cm` : '',
-                      posterConfig?.label,
-                      '—'
-                    )
-                   : pickFirst(posterConfig?.label, posterConfig?.name, posterConfig?.sizeLabel, '—')
-                 }
+                posterConfig.sizeMode === 'custom'
+                  ? (posterConfig.name ?? (posterConfig.wCm && posterConfig.hCm ? `${posterConfig.wCm} x ${posterConfig.hCm} cm` : '—'))
+                  : (posterConfig.label ?? posterConfig.name ?? '—')
+               }
              />
              <Row
                label={t('posterConfig.material', 'Material')}
-               value={pickFirst(posterConfig?.materialLabel, posterConfig?.material, '—')}
+               value={posterConfig.materialLabel ?? '—'}
              />
              <Row
                label={t('posterConfig.laminate', 'Laminado')}
-               value={pickFirst(posterConfig?.laminateLabel, posterConfig?.laminate, '—')}
+               value={posterConfig.laminateLabel ?? '—'}
              />
            </>
-         ) : isPhotoFlow ? (
-
+         ) : isPhotoFlow && photoConfig ? (
             <>
               <Row
                 label={t('photoConfig.size', 'Tamaño')}
-                value={pickFirst(photoConfig?.name, photoConfig?.label, photoConfig?.sizeLabel, '—')}
+                value={photoConfig.label ?? '—'}
               />
               <Row
-                label="Medidas"
+                label={t('summary.measures', 'Medidas')}
                 value={(() => {
-                  const wIn = photoConfig?.wIn;
-                  const hIn = photoConfig?.hIn;
-                  const wCm = photoConfig?.wCm;
-                  const hCm = photoConfig?.hCm;
-
+                  const wIn = photoConfig.widthIn;
+                  const hIn = photoConfig.heightIn;
+                  const wCm = photoConfig.widthCm;
+                  const hCm = photoConfig.heightCm;
                   const inPart = (wIn && hIn) ? `${wIn}x${hIn} in` : '';
                   const cmPart = (wCm && hCm) ? `${wCm}x${hCm} cm` : '';
-
                   if (inPart && cmPart) return `${inPart} / ${cmPart}`;
                   if (inPart) return inPart;
                   if (cmPart) return cmPart;
@@ -269,40 +209,41 @@ export default function OrderSummary() {
               />
               <Row
                 label={t('photoConfig.quantity', 'Cantidad')}
-                value={safeNumber(photoConfig?.quantity ?? photoConfig?.qty ?? 1, 1)}
+                value={safeNumber(photoConfig.quantity, 1)}
               />
               <Row
                 label={t('photoConfig.price', 'Precio')}
-                value={formatMoney(safeNumber(photoConfig?.price ?? photoConfig?.unitPrice ?? 0, 0))}
+                value={formatMoney(safeNumber(photoConfig.price, 0))}
               />
             </>
-          ) : (
+          ) : printConfig ? (
             <>
               <Row
                 label={t('summary.paper', 'Tamaño de Papel')}
-                value={pickFirst(printConfig?.paper, printConfig?.paperSize, '—')}
+                value={printConfig.paperLabel ?? printConfig.paper ?? '—'}
               />
               <Row
                 label={t('summary.pages', 'Páginas Totales')}
-                value={pickFirst(printConfig?.totalPages, '—')}
+                value={printConfig.totalPages ?? '—'}
               />
               <Row
                 label={t('summary.copies', 'Copias')}
-                value={pickFirst(printConfig?.copies, '—')}
+                value={printConfig.copies ?? '—'}
               />
               <Row
                 label={t('summary.printType', 'Tipo de Impresión')}
-                value={pickFirst(printConfig?.printType, printConfig?.type, '—')}
+                value={printConfig.printTypeLabel ?? printConfig.printType ?? '—'}
               />
               <Row
                 label={t('summary.binding', 'Encuadernación')}
-                value={pickFirst(printConfig?.binding, '—')}
+                value={printConfig.bindingLabel ?? printConfig.binding ?? '—'}
               />
             </>
+          ) : (
+            <Text style={styles.muted}>—</Text>
           )}
         </View>
 
-        {/* 4) Archivos (solo para impresión normalmente) */}
         {!isPhotoFlow && (
           <>
             <View style={styles.sectionHeader}>
@@ -314,13 +255,13 @@ export default function OrderSummary() {
 
             <View style={styles.card}>
               {files.length === 0 ? (
-                <Text style={styles.muted}>{t('summary.noFiles', '—')}</Text>
+                <Text style={styles.muted}>—</Text>
               ) : (
-                files.map((f: any, idx: number) => (
+                files.map((f, idx) => (
                   <Row
-                    key={String(f?.uri ?? f?.name ?? idx)}
-                    label={`${idx + 1}. ${String(f?.name ?? 'archivo')}`}
-                    value={`${String(f?.pages ?? f?.pageCount ?? '—')} ${t('summary.pagesShort', 'págs.')}`}
+                    key={`${f.uri}-${idx}`}
+                    label={`${idx + 1}. ${f.name}`}
+                    value={f.pages ? `${f.pages} ${t('summary.pagesShort', 'págs.')}` : '—'}
                   />
                 ))
               )}
@@ -328,7 +269,6 @@ export default function OrderSummary() {
           </>
         )}
 
-        {/* 5) Delivery */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionIcon}>
             <MapPin size={18} color="#0B5FFF" />
@@ -337,25 +277,28 @@ export default function OrderSummary() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.muted}>
-            {delivery?.enabled ? t('summary.deliveryOn', 'Con delivery') : t('summary.deliveryOff', 'Sin delivery')}
-          </Text>
+          {delivery.enabled ? (
+            <>
+              <Row label={t('summary.deliveryAddress', 'Dirección')} value={delivery.address || '—'} />
+              <Row label={t('summary.deliveryMiles', 'Distancia')} value={`${delivery.miles} mi`} />
+              <Row label={t('summary.deliveryFee', 'Costo delivery')} value={formatMoney(delivery.fee)} />
+            </>
+          ) : (
+            <Text style={styles.muted}>{t('summary.deliveryOff', 'Sin delivery')}</Text>
+          )}
         </View>
 
-        {/* Total */}
         <View style={styles.totalCard}>
           <Text style={styles.totalTitle}>{t('summary.total', 'Total Estimado')}</Text>
-          <Text style={styles.totalValue}>{formatMoney(estimatedTotal)}</Text>
+          <Text style={styles.totalValue}>{formatMoney(estimatedTotal + (delivery.enabled ? delivery.fee : 0))}</Text>
           <Text style={styles.totalNote}>
             {t('summary.totalNote', 'El precio final puede variar según las condiciones reales de los archivos')}
           </Text>
         </View>
 
         <View style={{ height: 24 }} />
+      </ScrollView>
 
-       </ScrollView>
-
-      {/* Botones abajo */}
       <View style={styles.bottom}>
         <View style={styles.bottomInner}>
           <View style={{ flex: 1 }}>
@@ -390,13 +333,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: '#EEF2F7',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   topTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
 
@@ -467,10 +403,6 @@ const styles = StyleSheet.create({
   whatsBtnDisabled: { opacity: 0.5 },
   whatsText: { color: '#16A34A', fontWeight: '900', fontSize: 14 },
 
-  fileRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
-  fileName: { fontSize: 14, fontWeight: '800', color: '#111827' },
-  fileMeta: { fontWeight: '800', color: '#6B7280' },
-
   muted: { color: '#6B7280', fontWeight: '700' },
 
   totalCard: {
@@ -525,5 +457,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
   },
-
 });

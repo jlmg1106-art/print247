@@ -100,8 +100,13 @@ Preferred communication style: Simple, everyday language.
 - Phone number auto-formatting: `(555) 123-4567`
 
 ## Recent Changes
-- Full i18n coverage for all order flow screens (print-config, photo-config, poster-config, upload-files, order-summary, order-success, order-status)
-- Fixed TypeScript type consistency: `totalPages` field used consistently across PrintConfig type, upload-files, and order-summary
-- Fixed select-location.tsx to use correct `setSelectedLocation()` context method
-- Removed duplicate style properties in order-summary
+- **Order data model consistency refactor**: Removed all `as any` casts across the app
+- Added `OrderStatus` type: 'draft' | 'submitted' | 'pending' | 'completed' | 'cancelled' (default: 'draft')
+- Added context helper selectors: `isReadyForSummary()`, `getMissingForSummary()`, `isReadyToSubmit()`
+- `PrintConfig` uses ONLY `totalPages` (no pagesTotal/pages variants)
+- `upload-files.tsx`: initializes local state from context, file removal with X button, duplicate prevention, delivery validation (address + miles > 0)
+- `order-summary.tsx`: uses `order.orderType` directly (no flow/type/category fallbacks), validates via `getMissingForSummary()` before confirm, sets status to 'submitted'
+- `order-status.tsx`: reads/writes `order.status` directly (no `setOrderStatus` object), auto-redirect only on completed/cancelled
+- `photo-config.tsx`: payload now matches `PhotoConfig` type exactly (sizeCode, label, widthIn, heightIn, widthCm, heightCm, quantity, price)
+- Full i18n coverage for all order flow screens
 - MATERIALS/LAMINATIONS arrays in poster-config use labelKey/fallback pattern for i18n

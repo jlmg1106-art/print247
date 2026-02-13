@@ -50,7 +50,7 @@ const LAMINATIONS = [
 export default function PosterConfig() {
   const router = useRouter();
   const { t } = useTranslation();
-  const order = useOrder() as any;
+  const order = useOrder();
   const [sizeMode, setSizeMode] = useState<'preset' | 'custom'>(
     order?.posterConfig?.sizeMode ?? 'preset'
   );

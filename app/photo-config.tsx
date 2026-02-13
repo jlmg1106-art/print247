@@ -27,7 +27,7 @@ function formatSize(s: PhotoSize) {
 export default function PhotoConfig() {
   const router = useRouter();
   const { t } = useTranslation();
-  const order = useOrder() as any;
+  const order = useOrder();
 
   const [selectedCode, setSelectedCode] = useState<string>('1.4x2.2');
   const [qty, setQty] = useState<number>(1);
@@ -90,29 +90,28 @@ export default function PhotoConfig() {
       const payload =
         selected.code === 'CUSTOM'
           ? {
-              code: 'CUSTOM',
-              name: 'Tamaño Personalizado',
-              qty,
-              wIn: Number(customWIn),
-              hIn: Number(customHIn),
-              wCm: Number(customCm.wCm),
-              hCm: Number(customCm.hCm),
+              sizeCode: 'CUSTOM',
+              label: 'Tamaño Personalizado',
+              quantity: qty,
+              widthIn: Number(customWIn),
+              heightIn: Number(customHIn),
+              widthCm: Number(customCm.wCm),
+              heightCm: Number(customCm.hCm),
               price: 0,
-              total: 0,
+              isCustom: true,
             }
           : {
-              code: selected.code,
-              name: selected.name,
-              qty,
-              wIn: selected.wIn,
-              hIn: selected.hIn,
-              wCm: selected.wCm,
-              hCm: selected.hCm,
+              sizeCode: selected.code,
+              label: selected.name,
+              quantity: qty,
+              widthIn: selected.wIn ?? 0,
+              heightIn: selected.hIn ?? 0,
+              widthCm: selected.wCm ?? 0,
+              heightCm: selected.hCm ?? 0,
               price: selected.price,
-              total,
             };
 
-      if (order?.setPhotoConfig) order.setPhotoConfig(payload);
+      order.setPhotoConfig(payload);
     } catch (e) {}
 
     router.push({ pathname: '/upload-files', params: { flow: 'photo' } });

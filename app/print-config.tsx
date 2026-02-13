@@ -129,7 +129,7 @@ export default function PrintConfig() {
   const { t } = useTranslation();
   const order = useOrder();
 
-  const orderType = (order as any)?.orderType;
+  const orderType = order.orderType;
 
   const [paper, setPaper] = useState<PaperSize>('letter');
   const [copies, setCopies] = useState<number>(1);
@@ -155,7 +155,7 @@ export default function PrintConfig() {
         orderType,
       };
 
-      if ((order as any)?.setPrintConfig) (order as any).setPrintConfig(payload);
+      order.setPrintConfig(payload);
     } catch (e) {}
 
     router.push({ pathname: '/upload-files', params: { flow: 'print' } });

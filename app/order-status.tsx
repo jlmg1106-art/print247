@@ -4,80 +4,81 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Clock3, XCircle, CheckCircle2, PackageCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { useOrder } from '../contexts/OrderContext';
+import { useOrder, OrderStatus as OrderStatusType } from '../contexts/OrderContext';
 import { getOrders, updateOrderStatus } from '@/lib/orders';
 
-type Status = 'pending' | 'cancelled' | 'completed';
+type DisplayStatus = 'pending' | 'cancelled' | 'completed';
 
 export default function OrderStatus() {
   const router = useRouter();
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  const [status, setStatus] = useState<Status>('pending');
+  const { t } = useTranslation();
+  const order = useOrder();
+
+  const [displayStatus, setDisplayStatus] = useState<DisplayStatus>('pending');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadStatus();
-    const tmr = setTimeout(() => {
-      router.replace('/');
-    }, 10000);
-
-    return () => clearTimeout(tmr);
   }, [orderId]);
+
+  useEffect(() => {
+    if (displayStatus === 'completed' || displayStatus === 'cancelled') {
+      const tmr = setTimeout(() => {
+        router.replace('/');
+      }, 10000);
+      return () => clearTimeout(tmr);
+    }
+  }, [displayStatus]);
 
   const loadStatus = async () => {
     if (orderId) {
       const orders = await getOrders();
       const currentOrder = orders.find(o => o.id === orderId);
       if (currentOrder) {
-        setStatus(currentOrder.status);
+        setDisplayStatus(currentOrder.status);
       }
     }
     setLoading(false);
   };
 
-  const { t } = useTranslation();
-  const order = useOrder() as any;
-
   const meta = useMemo(() => {
-  if (status === 'completed')
-    return {
-      icon: CheckCircle2,
-      title: t('status.completed', 'Completado'),
-      desc: t('status.completedDesc', 'Tu pedido fue completado y está listo.'),
-    };
+    if (displayStatus === 'completed')
+      return {
+        icon: CheckCircle2,
+        title: t('status.completed', 'Completado'),
+        desc: t('status.completedDesc', 'Tu pedido fue completado y está listo.'),
+      };
 
-  if (status === 'cancelled')
-    return {
-      icon: XCircle,
-      title: t('status.cancelled', 'Cancelado'),
-      desc: t('status.cancelledDesc', 'Tu pedido fue cancelado.'),
-    };
+    if (displayStatus === 'cancelled')
+      return {
+        icon: XCircle,
+        title: t('status.cancelled', 'Cancelado'),
+        desc: t('status.cancelledDesc', 'Tu pedido fue cancelado.'),
+      };
 
-  return {
-    icon: Clock3,
-    title: t('status.pending', 'Pendiente'),
-    desc: t('status.pendingDesc', 'Estamos procesando tu pedido.'),
-  };
-}, [status, t]);
+    return {
+      icon: Clock3,
+      title: t('status.pending', 'Pendiente'),
+      desc: t('status.pendingDesc', 'Estamos procesando tu pedido.'),
+    };
+  }, [displayStatus, t]);
 
   const Icon = meta.icon;
 
-  const save = async (s: Status) => {
-    setStatus(s);
+  const save = async (s: DisplayStatus) => {
+    setDisplayStatus(s);
     if (orderId) {
       await updateOrderStatus(orderId, s);
     }
-    try {
-      if (order?.setOrderStatus) order.setOrderStatus({ status: s });
-      else if (order?.setStatus) order.setStatus(s);
-    } catch (e) {}
+    order.setStatus(s as OrderStatusType);
   };
 
   return (
     <View style={styles.page}>
       <View style={styles.topBar}>
         <Text style={styles.topTitle}>
-          {orderId ? `Pedido: ${orderId}` : 'order-status'}
+          {orderId ? `${t('status.order', 'Pedido')}: ${orderId}` : t('status.title', 'Estado del Pedido')}
         </Text>
       </View>
 
@@ -93,7 +94,7 @@ export default function OrderStatus() {
 
         <View style={styles.statusCard}>
           <View style={styles.statusTop}>
-            <Icon size={22} color={status === 'completed' ? '#16A34A' : status === 'cancelled' ? '#DC2626' : '#F59E0B'} />
+            <Icon size={22} color={displayStatus === 'completed' ? '#16A34A' : displayStatus === 'cancelled' ? '#DC2626' : '#F59E0B'} />
             <Text style={styles.statusTitle}>{meta.title}</Text>
           </View>
           <Text style={styles.statusDesc}>{meta.desc}</Text>
@@ -102,15 +103,15 @@ export default function OrderStatus() {
         <Text style={styles.smallTitle}>{t('status.change', 'Cambiar estado (demo)')}</Text>
 
         <View style={styles.btnRow}>
-          <TouchableOpacity style={[styles.pill, status === 'pending' && styles.pillOn]} onPress={() => save('pending')} activeOpacity={0.9}>
+          <TouchableOpacity style={[styles.pill, displayStatus === 'pending' && styles.pillOn]} onPress={() => save('pending')} activeOpacity={0.9}>
             <Text style={styles.pillText}>{t('status.pending', 'Pendiente')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.pill, status === 'cancelled' && styles.pillOnRed]} onPress={() => save('cancelled')} activeOpacity={0.9}>
+          <TouchableOpacity style={[styles.pill, displayStatus === 'cancelled' && styles.pillOnRed]} onPress={() => save('cancelled')} activeOpacity={0.9}>
             <Text style={styles.pillText}>{t('status.cancelled', 'Cancelado')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.pill, status === 'completed' && styles.pillOnGreen]} onPress={() => save('completed')} activeOpacity={0.9}>
+          <TouchableOpacity style={[styles.pill, displayStatus === 'completed' && styles.pillOnGreen]} onPress={() => save('completed')} activeOpacity={0.9}>
             <Text style={styles.pillText}>{t('status.completed', 'Completado')}</Text>
           </TouchableOpacity>
         </View>
@@ -139,7 +140,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  backBtn: { paddingVertical: 6, paddingHorizontal: 6 },
   topTitle: { fontSize: 16, fontWeight: '800', color: '#111827', flex: 1, textAlign: 'center', marginRight: 34 },
 
   content: { paddingHorizontal: 18, paddingTop: 18 },

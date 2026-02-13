@@ -2,7 +2,7 @@ import BottomBackButton from '@/components/BottomBackButton';
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Upload, Info, Truck } from 'lucide-react-native';
+import { Upload, Info, Truck, X } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
 import { useOrder, PickedFile } from '../contexts/OrderContext';
@@ -14,7 +14,6 @@ function isAllowed(name: string) {
   return ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'tiff', 'psd'].includes(ext);
 }
 
-// $10 primeras 20 millas, luego $0.60 por milla adicional
 function calcDeliveryFee(miles: number) {
   if (!Number.isFinite(miles) || miles <= 0) return 0;
   if (miles <= 20) return 10;
@@ -41,21 +40,35 @@ export default function UploadFiles() {
   const { t } = useTranslation();
   const order = useOrder();
 
-  const type = order?.orderType;
+  const type = order.orderType;
   const isPosterFlow = type === 'poster';
   const isPhotoFlow = type === 'photo';
 
-  const [files, setFiles] = useState<PickedFile[]>([]);
-  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryMilesText, setDeliveryMilesText] = useState('0');
-  const [notes, setNotes] = useState('');
+  const [files, setFiles] = useState<PickedFile[]>(order.files.length > 0 ? order.files : []);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(order.delivery.enabled);
+  const [deliveryAddress, setDeliveryAddress] = useState(order.delivery.address);
+  const [deliveryMilesText, setDeliveryMilesText] = useState(
+    order.delivery.miles > 0 ? String(order.delivery.miles) : '0'
+  );
+  const [notes, setNotes] = useState(order.notes);
 
   const countLabel = `${files.length} / ${MAX_FILES}`;
   const miles = Number(deliveryMilesText || 0);
   const deliveryFee = deliveryEnabled ? calcDeliveryFee(miles) : 0;
 
-  const canContinue = useMemo(() => files.length > 0 && files.length <= MAX_FILES, [files.length]);
+  const deliveryValid = useMemo(() => {
+    if (!deliveryEnabled) return true;
+    return deliveryAddress.trim().length > 0 && miles > 0;
+  }, [deliveryEnabled, deliveryAddress, miles]);
+
+  const canContinue = useMemo(
+    () => files.length > 0 && files.length <= MAX_FILES && deliveryValid,
+    [files.length, deliveryValid]
+  );
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const pickFiles = async () => {
     try {
@@ -69,6 +82,8 @@ export default function UploadFiles() {
 
       if (res.canceled) return;
 
+      const existingUris = new Set(files.map((f) => f.uri));
+
       const incomingBase: PickedFile[] = (res.assets || [])
         .map((a) => ({
           name: a.name ?? 'file',
@@ -77,17 +92,15 @@ export default function UploadFiles() {
           mimeType: a.mimeType,
           pages: undefined,
         }))
-        .filter((f) => isAllowed(f.name));
+        .filter((f) => isAllowed(f.name))
+        .filter((f) => !existingUris.has(f.uri));
 
-      // calcular páginas SOLO si es PDF (para imagenes ponemos 1)
       const incomingWithPages: PickedFile[] = [];
       for (const f of incomingBase) {
         const ext = f.name.split('.').pop()?.toLowerCase() || '';
         if (ext === 'pdf') {
           const pages = await getPdfPages(f.uri);
           incomingWithPages.push({ ...f, pages });
-        } else if (['jpg', 'jpeg', 'png', 'tiff', 'psd'].includes(ext)) {
-          incomingWithPages.push({ ...f, pages: undefined });
         } else {
           incomingWithPages.push({ ...f, pages: undefined });
         }
@@ -96,38 +109,44 @@ export default function UploadFiles() {
       const merged = [...files, ...incomingWithPages].slice(0, MAX_FILES);
       setFiles(merged);
     } catch (e: any) {
-      Alert.alert('Error', 'No se pudo abrir el selector de archivos. Revisa que estás usando Expo Go y vuelve a intentar.');
+      Alert.alert('Error', t('upload.pickerError', 'No se pudo abrir el selector de archivos.'));
     }
   };
 
   const onContinue = () => {
-    try {
-      order.setFiles(files);
+    if (deliveryEnabled && !deliveryAddress.trim()) {
+      Alert.alert(
+        t('upload.validationTitle', 'Datos incompletos'),
+        t('upload.deliveryAddressRequired', 'Ingresa la dirección de entrega.')
+      );
+      return;
+    }
+    if (deliveryEnabled && miles <= 0) {
+      Alert.alert(
+        t('upload.validationTitle', 'Datos incompletos'),
+        t('upload.deliveryMilesRequired', 'Ingresa la distancia estimada en millas.')
+      );
+      return;
+    }
 
-      order.setNotes(notes);
-
-      order.setDelivery({
-        enabled: deliveryEnabled,
-        address: deliveryEnabled ? deliveryAddress.trim() : '',
-        miles: deliveryEnabled ? Number(deliveryMilesText || 0) : 0,
-        fee: deliveryEnabled ? deliveryFee : 0,
-      });
-
-      // si tu printConfig existe, actualizamos totalPages sumando PDFs
-      if (order.printConfig) {
-        const totalPages = files.reduce((acc, f) => acc + (Number(f.pages) || 0), 0);
-        order.setPrintConfig({
-          ...order.printConfig,
-          totalPages: totalPages > 0 ? totalPages : order.printConfig.totalPages,
-        });
-      }
-    } catch (e) {}
-
-    router.push({
-      pathname: '/order-summary',
-      params: { flow: isPosterFlow ? 'poster' : isPhotoFlow ? 'photo' : 'print' },
+    order.setFiles(files);
+    order.setNotes(notes);
+    order.setDelivery({
+      enabled: deliveryEnabled,
+      address: deliveryEnabled ? deliveryAddress.trim() : '',
+      miles: deliveryEnabled ? miles : 0,
+      fee: deliveryEnabled ? deliveryFee : 0,
     });
 
+    if (order.printConfig) {
+      const totalPages = files.reduce((acc, f) => acc + (Number(f.pages) || 0), 0);
+      order.setPrintConfig({
+        ...order.printConfig,
+        totalPages: totalPages > 0 ? totalPages : order.printConfig.totalPages,
+      });
+    }
+
+    router.push('/order-summary');
   };
 
   return (
@@ -181,13 +200,17 @@ export default function UploadFiles() {
           <Text style={styles.dropCount}>{countLabel}</Text>
         </TouchableOpacity>
 
-        {/* Lista simple de archivos seleccionados */}
         {files.length > 0 ? (
           <View style={styles.filesCard}>
             {files.map((f, i) => (
               <View key={`${f.uri}-${i}`} style={styles.fileRow}>
-                <Text style={styles.fileName}>{i + 1}. {f.name}</Text>
-                <Text style={styles.fileMeta}>{f.pages ? `${f.pages} págs.` : ''}</Text>
+                <Text style={styles.fileName} numberOfLines={1}>{i + 1}. {f.name}</Text>
+                <View style={styles.fileActions}>
+                  <Text style={styles.fileMeta}>{f.pages ? `${f.pages} págs.` : ''}</Text>
+                  <TouchableOpacity onPress={() => removeFile(i)} hitSlop={8}>
+                    <X size={18} color="#DC2626" />
+                  </TouchableOpacity>
+                </View>
               </View>
             ))}
           </View>
@@ -271,7 +294,6 @@ export default function UploadFiles() {
            <Text style={styles.ctaText} numberOfLines={1} ellipsizeMode="tail">
              {t('common.continue', 'Continuar')}
            </Text>
-
          </TouchableOpacity>
        </View>
      </View>
@@ -292,7 +314,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  backBtn: { paddingVertical: 6, paddingHorizontal: 6 },
   topTitle: { fontSize: 16, fontWeight: '800', color: '#111827', flex: 1, textAlign: 'center', marginRight: 34 },
 
   content: { paddingHorizontal: 18, paddingTop: 16 },
@@ -345,8 +366,9 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#FFFFFF',
   },
-  fileRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
+  fileRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   fileName: { fontWeight: '800', color: '#111827', flex: 1, paddingRight: 10 },
+  fileActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   fileMeta: { fontWeight: '800', color: '#6B7280' },
 
   card: {
@@ -413,10 +435,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#EEF2F7',
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
-    gap: 12, 
+    gap: 12,
   },
   cta: { height: 56, borderRadius: 16, backgroundColor: '#0B5FFF', alignItems: 'center', justifyContent: 'center' },
   ctaDisabled: { backgroundColor: '#CBD5E1' },
   ctaText: { color: '#FFFFFF', fontSize: 18, fontWeight: '900' },
 });
-

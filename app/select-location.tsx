@@ -88,7 +88,7 @@ export default function SelectLocation() {
     } catch (e) {}
 
     // Próximo paso (después de sede)
-    const type = (order as any)?.orderType;
+    const type = order.orderType;
 
     const next =
       type === 'photo' ? '/photo-config'
