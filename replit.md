@@ -100,7 +100,7 @@ Preferred communication style: Simple, everyday language.
 - Phone number auto-formatting: `(555) 123-4567`
 
 ## Recent Changes
-- **Firestore order creation**: Added `src/services/orders.ts` with `createOrderDoc()` that writes to Firestore `orders` collection; `src/types/order.ts` defines the Firestore document shape; `order-summary.tsx` calls createOrderDoc on confirm (falls back to local-only if Firebase not configured); `orderId` stored in OrderContext
+- **Firebase Storage file upload + Firestore order submission**: `src/services/orders.ts` now exports `submitOrder()` which creates Firestore doc, uploads files to `orders/{orderId}/{fileName}` in Firebase Storage, then updates the doc with `files` array (downloadURL, storagePath, metadata). `order-summary.tsx` calls `submitOrder` with progress UI (spinner + file count). Falls back to local-only if Firebase not configured. `orderId` stored in OrderContext.
 - **Order data model consistency refactor**: Removed all `as any` casts across the app
 - Added `OrderStatus` type: 'draft' | 'submitted' | 'pending' | 'completed' | 'cancelled' (default: 'draft')
 - Added context helper selectors: `isReadyForSummary()`, `getMissingForSummary()`, `isReadyToSubmit()`

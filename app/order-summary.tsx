@@ -1,13 +1,13 @@
 import BottomBackButton from '@/components/BottomBackButton';
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Platform, Alert } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FileText, MapPin, Printer, Camera, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '../contexts/OrderContext';
 import { saveOrder, generateOrderId } from '@/lib/orders';
-import { createOrderDoc } from '@/src/services/orders';
-import type { OrderDraft, OrderFlow } from '@/src/types/order';
+import { submitOrder } from '@/src/services/orders';
+import type { OrderFlow, SubmitOrderInput } from '@/src/types/order';
 
 function safeNumber(v: unknown, fallback = 0) {
   const n = Number(v);
@@ -35,6 +35,9 @@ export default function OrderSummary() {
   const order = useOrder();
 
   const { orderType, userInfo, selectedLocation, printConfig, photoConfig, posterConfig, files, delivery } = order;
+
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ uploaded: number; total: number } | null>(null);
 
   const isPosterFlow = orderType === 'poster';
   const isPhotoFlow = orderType === 'photo';
@@ -73,6 +76,9 @@ export default function OrderSummary() {
       return;
     }
 
+    setSubmitting(true);
+    setUploadProgress(null);
+
     try {
       const flowMap: Record<string, OrderFlow> = { document: 'print', photo: 'photo', poster: 'poster' };
       const flow: OrderFlow = flowMap[orderType ?? ''] ?? 'print';
@@ -83,7 +89,7 @@ export default function OrderSummary() {
           ? photoConfig
           : printConfig ?? {};
 
-      const draft: OrderDraft = {
+      const input: SubmitOrderInput = {
         orderType: flow,
         branchId: selectedLocation?.id ?? '',
         userInfo: {
@@ -106,20 +112,32 @@ export default function OrderSummary() {
           pages: f.pages,
         })),
         estimatedTotal,
+        pickedFiles: files.map((f) => ({
+          name: f.name,
+          uri: f.uri,
+          size: f.size,
+          mimeType: f.mimeType,
+          pages: f.pages,
+        })),
       };
 
-      let firestoreOrderId: string | null = null;
+      let finalOrderId: string | null = null;
+
       try {
-        const result = await createOrderDoc(draft);
-        firestoreOrderId = result.orderId;
-      } catch (firestoreErr) {
-        console.warn('Firestore write failed (offline or not configured), saving locally only:', firestoreErr);
+        const result = await submitOrder(input, (uploaded, total) => {
+          setUploadProgress({ uploaded, total });
+        });
+        finalOrderId = result.orderId;
+      } catch (firebaseErr) {
+        console.warn('Firebase submit failed, saving locally only:', firebaseErr);
       }
 
-      const localOrderId = firestoreOrderId ?? await generateOrderId();
+      if (!finalOrderId) {
+        finalOrderId = await generateOrderId();
+      }
 
       const localOrder = {
-        id: localOrderId,
+        id: finalOrderId,
         createdAt: new Date().toISOString(),
         flow,
         locationName: selectedLocation?.name ?? '—',
@@ -129,12 +147,15 @@ export default function OrderSummary() {
 
       await saveOrder(localOrder);
 
-      order.setOrderId(localOrderId);
+      order.setOrderId(finalOrderId);
       order.setStatus('submitted');
-      router.push({ pathname: '/order-success', params: { orderId: localOrderId } });
+      router.push({ pathname: '/order-success', params: { orderId: finalOrderId } });
     } catch (error) {
       console.error('Error confirming order:', error);
       Alert.alert('Error', t('summary.confirmError', 'No se pudo confirmar el pedido. Intenta de nuevo.'));
+    } finally {
+      setSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -352,13 +373,25 @@ export default function OrderSummary() {
 
           <View style={{ flex: 1 }}>
             <TouchableOpacity
-              style={[styles.cta, styles.ctaGreen]}
+              style={[styles.cta, styles.ctaGreen, submitting && styles.ctaDisabled]}
               activeOpacity={0.9}
               onPress={confirmOrder}
+              disabled={submitting}
             >
-              <Text style={styles.ctaText} numberOfLines={1} ellipsizeMode="tail">
-                {t('summary.confirm', 'Confirmar Pedido')}
-              </Text>
+              {submitting ? (
+                <View style={styles.ctaLoading}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text style={styles.ctaText} numberOfLines={1}>
+                    {uploadProgress
+                      ? `${t('summary.uploading', 'Subiendo')} ${uploadProgress.uploaded}/${uploadProgress.total}...`
+                      : t('summary.submitting', 'Enviando...')}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.ctaText} numberOfLines={1} ellipsizeMode="tail">
+                  {t('summary.confirm', 'Confirmar Pedido')}
+                </Text>
+              )}
              </TouchableOpacity>
             </View>
            </View>
@@ -495,6 +528,16 @@ const styles = StyleSheet.create({
 
   ctaGreen: {
     backgroundColor: '#16A34A',
+  },
+
+  ctaDisabled: {
+    opacity: 0.7,
+  },
+
+  ctaLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 
   ctaText: {

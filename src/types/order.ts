@@ -24,6 +24,15 @@ export interface OrderFileMetadata {
   pages?: number;
 }
 
+export interface UploadedFileRecord {
+  name: string;
+  mimeType: string | null;
+  size: number | null;
+  pages: number | null;
+  storagePath: string;
+  downloadURL: string;
+}
+
 export interface OrderPrintConfig {
   paper?: string;
   paperLabel?: string;
@@ -75,7 +84,20 @@ export interface FirestoreOrderDoc {
   notes: string;
   config: OrderPrintConfig | OrderPhotoConfig | OrderPosterConfig;
   filesMetadata: OrderFileMetadata[];
+  files?: UploadedFileRecord[];
   estimatedTotal: number;
+}
+
+export interface SubmitOrderInput {
+  orderType: OrderFlow;
+  branchId: string;
+  userInfo: OrderUserInfo;
+  delivery: OrderDelivery;
+  notes: string;
+  config: OrderPrintConfig | OrderPhotoConfig | OrderPosterConfig;
+  filesMetadata: OrderFileMetadata[];
+  estimatedTotal: number;
+  pickedFiles: { name: string; uri: string; size?: number; mimeType?: string; pages?: number }[];
 }
 
 export interface OrderDraft {
