@@ -1,7 +1,7 @@
 import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Platform } from 'react-native';
-import { db, storage } from '@/lib/firebase';
+import { db, storage, isConfigured } from '@/lib/firebase';
 import type {
   OrderDraft,
   SubmitOrderInput,
@@ -44,6 +44,7 @@ export async function uploadOrderFiles(
     const file = files[i];
     const safeName = sanitizeFileName(file.name);
     const storagePath = `orders/${orderId}/${safeName}`;
+    if (!storage) throw new Error('Firebase Storage not configured');
     const storageRef = ref(storage, storagePath);
 
     const blob = await uriToBlob(file.uri);
@@ -70,8 +71,8 @@ export async function uploadOrderFiles(
 }
 
 export async function createOrderDoc(draft: OrderDraft): Promise<{ orderId: string }> {
-  if (!process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID) {
-    throw new Error('Firebase not configured: EXPO_PUBLIC_FIREBASE_PROJECT_ID is missing');
+  if (!isConfigured || !db) {
+    throw new Error('Firebase not configured');
   }
   if (!draft.orderType) throw new Error('orderType is required');
   if (!draft.userInfo?.fullName || !draft.userInfo?.phone || !draft.userInfo?.email) {
@@ -119,7 +120,7 @@ export async function submitOrder(
   input: SubmitOrderInput,
   onProgress?: (uploaded: number, total: number) => void,
 ): Promise<{ orderId: string }> {
-  if (!process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID) {
+  if (!isConfigured || !db) {
     throw new Error('Firebase not configured');
   }
 
