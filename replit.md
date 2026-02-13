@@ -64,6 +64,18 @@ Preferred communication style: Simple, everyday language.
 - `expo-splash-screen` - Launch screen management
 - `expo-status-bar` - System status bar customization
 
+### Firebase (Client SDK)
+- **Firebase Client SDK** (`lib/firebase.ts`) — initialized with `EXPO_PUBLIC_*` environment variables
+- Exports: `db` (Firestore), `storage` (Storage), `auth` (Auth)
+- **No firebase-admin** in the client app — service accounts are server-only
+- Required environment variables (set in Replit Secrets):
+  - `EXPO_PUBLIC_FIREBASE_API_KEY`
+  - `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`
+  - `EXPO_PUBLIC_FIREBASE_PROJECT_ID`
+  - `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`
+  - `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+  - `EXPO_PUBLIC_FIREBASE_APP_ID`
+
 ### Planned Integrations (Not Yet Implemented)
 - Location services for "nearby printers" (currently uses sample data)
 - Payment processing (order summary shows pricing but no checkout)
